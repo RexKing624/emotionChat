@@ -31,7 +31,7 @@
       <form class="composer" @submit.prevent="sendMessage">
         <textarea
           v-model="input"
-          placeholder="发消息给 elephui..."
+          placeholder="发消息给 elephui...."
           rows="3"
           @keydown.enter.exact.prevent="sendMessage"
         />
