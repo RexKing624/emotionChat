@@ -52,4 +52,4 @@ curl -X POST http://127.0.0.1:3000/api/chat \
 
 ## 说明
 
-后端会在每次请求时把 `elephui_full` 的 `SKILL.md`、`persona.md`、`memories.md` 和 IG 摘要注入为 system prompt。聊天记录会自动追加到 Markdown 存档里，方便之后继续修正 persona 或回看对话。
+后端会在每次请求时把 `xxxxx（e.g.elephui_full）` 的 `SKILL.md`、`persona.md`、`memories.md` 和 IG 摘要注入为 system prompt。聊天记录会自动追加到 Markdown 存档里，方便之后继续修正 persona 或回看对话。
