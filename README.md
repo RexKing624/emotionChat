@@ -1,4 +1,4 @@
-# aiChat
+# EmotionChat
 
 这是一个本地 Ollama + Express + Vue3 聊天环境，现在已接入：
 
