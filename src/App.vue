@@ -35,7 +35,7 @@
       <form class="composer" @submit.prevent="sendMessage">
         <textarea
           v-model="input"
-          :placeholder="t.placeholder"
+          :placeholder="t.placeholder.replace('{name}', settings.name)"
           rows="3"
           @keydown.enter.exact="onEnter"
           :disabled="initializing"
@@ -49,7 +49,11 @@
       <form @submit.prevent="saveSettings" class="settings-form">
         <div class="settings-title"><h2>{{ t.settings }}</h2><span class="model-status" :class="modelHealth.status" role="status">{{ modelHealth.model }} · {{ t[modelHealth.status] }}</span></div>
         <label>{{ t.name }}<input v-model="draft.name" maxlength="40" required /></label>
-        <label>{{ t.language }}<select v-model="draft.language"><option value="zh">中文</option><option value="ja">日本語</option><option value="en">English</option></select></label>
+        <fieldset><legend>{{ t.language }}</legend>
+          <div class="language-buttons" role="group" :aria-label="t.language">
+            <button v-for="option in languageOptions" :key="option.value" type="button" :aria-pressed="language === option.value" :class="{ selected: language === option.value }" :disabled="saving" @click="applyLanguage(option.value)">{{ option.label }}</button>
+          </div>
+        </fieldset>
         <p>{{ t.languageHint }}</p>
         <fieldset><legend>{{ t.proactive }}</legend>
           <p>{{ t.proactiveHint }}</p>
@@ -115,6 +119,26 @@ function openSettings() {
   settingsError.value = '';
   settingsOpen.value = true;
   settingsDialog.value.showModal();
+}
+const languageOptions = [{ value: 'zh', label: '中文' }, { value: 'ja', label: '日本語' }, { value: 'en', label: 'English' }];
+async function applyLanguage(value) {
+  if (saving.value || value === settings.value.language) return;
+  const previous = settings.value.language;
+  saving.value = true;
+  settingsError.value = '';
+  settings.value = { ...settings.value, language: value };
+  draft.value.language = value;
+  try {
+    // Save only the language change, preserving other unsaved form edits.
+    const response = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settings.value) });
+    const data = await response.json();
+    if (!response.ok) throw new Error('Save failed');
+    settings.value = data;
+  } catch {
+    settings.value = { ...settings.value, language: previous };
+    draft.value.language = previous;
+    settingsError.value = t.value.saveError;
+  } finally { saving.value = false; }
 }
 async function saveSettings() {
   if (!draft.value.name.trim() || draft.value.name.trim().length > 40) { settingsError.value = t.value.nameError; return; }
