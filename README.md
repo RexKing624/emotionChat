@@ -42,19 +42,24 @@ npm run dev
 
 首次打开网页，用数字键盘设置并确认六位数字总密码，之后解锁再选择聊天。中日英界面均可切换，也支持电脑数字键盘输入。
 
-1. 在 `emotion/` 下为每个回忆模型放一个子文件夹。可以用 [ex-skill](https://github.com/perkfly/ex-skill) 或其他方法整理、蒸馏资料。`emotion/Example/` 是空白公共模板。
+1. 在 `emotion/` 下为每个回忆模型放一个子文件夹。可以用 [ex-skill](https://github.com/perkfly/ex-skill) 或其他方法整理、蒸馏资料。示例提供 [Mika 完整案例](emotion/Mika_Demo/) 和 [Minimal 最小案例](emotion/Minimal/)。
+
+   ⭐ **不需要 ex-skill，也不需要微信聊天记录。** 可以自己写，或让 AI 根据口述、笔记整理 `persona.md`（性格、说话习惯和关系）与 `memories.md`（希望记住的事情）。将两个文件放进 `emotion/对象名字/` 就能开始，其他文件可选，之后再逐步补充。
 2. 点击“新建聊天”，输入聊天名字，再选择一个回忆模型。
 3. 点击“开始”才创建 `chats/聊天名字.md`。首句固定为“我在。你说。”，发出第一条消息后才调用 AI。
 4. 聊天选择页对应 `chats/` 中的 MD 文件。多个不同名字的聊天可以使用同一回忆模型；重名不会覆盖已有记录。
 
 ```text
 emotion/
-  Example/
+  Minimal/
+    persona.md
+    memories.md
+  Mika_Demo/
+    SKILL.md
+    persona.md
     memories.md
     conversations.md
-    skill/emotionchat/
-      SKILL.md
-      persona.md
+    meta.json
 chats/
   聊天名字.md
 runtime/
@@ -116,7 +121,10 @@ npm run dev
 
 初回に共通の6桁パスコードを2回入力して設定します。解除後にチャットを選択できます。
 
-- `emotion/` のサブフォルダーごとに記憶モデルを配置します。[ex-skill](https://github.com/perkfly/ex-skill) などで整理した資料を使えます。Example は公開用の空白テンプレートです。
+- `emotion/` のサブフォルダーごとに記憶モデルを配置します。[ex-skill](https://github.com/perkfly/ex-skill) などで整理した資料を使えます。[Mika の詳細例](emotion/Mika_Demo/) と [Minimal の最小例](emotion/Minimal/) を用意しています。
+
+  ⭐ **ex-skill や WeChat の履歴は必須ではありません。** 自分で書くか、メモや口述を AI で整理し、`persona.md`（性格・話し方・関係）と `memories.md`（覚えてほしいこと）を `emotion/相手の名前/` に置くだけで始められます。他のファイルは任意で、後から追加できます。
+
 - 「新しいチャット」で名前と記憶モデルを選び、「開始」で `chats/チャット名.md` を作成します。冒頭は「我在。你说。」で、ユーザーの最初の送信後にAIが応答します。
 - 同じ記憶モデルで複数のチャットを作れます。同名のファイルは上書きしません。チャット一覧は chats 内のMDに対応します。
 - `emotion/` は読み取り専用です。検索・削除・クリア・復元は現在のチャット履歴のみを対象にします。設定、記憶との対応、計画、バックアップは runtime に保存します。
@@ -172,7 +180,9 @@ Open `http://127.0.0.1:5174/` on your computer, or `http://COMPUTER_LAN_IP:5174/
 
 Set and confirm a shared six-digit passcode on first launch. Unlock to choose a chat. The keypad and interface support Chinese, Japanese and English, plus physical number keys.
 
-1. Put each memory model in a subfolder of `emotion/`. Use [ex-skill](https://github.com/perkfly/ex-skill) or another distillation method. Example is a blank public template.
+1. Put each memory model in a subfolder of `emotion/`. Use [ex-skill](https://github.com/perkfly/ex-skill) or another distillation method. Two examples are included: [the full Mika example](emotion/Mika_Demo/) and [the minimal example](emotion/Minimal/).
+
+   ⭐ **Neither ex-skill nor WeChat history is required.** Write the files yourself, or ask AI to organize your notes or spoken recollections into `persona.md` (personality, speaking style and relationship) and `memories.md` (things to remember). Put both in `emotion/person-name/` to get started. Other files are optional and can be added later.
 2. Choose New chat, enter a chat name and select a memory model.
 3. Start creates `chats/chat-name.md`, with the initial message “我在。你说。”. AI generation starts after the user's first message.
 4. The chat picker corresponds to the MD files in chats. Multiple named chats may share a memory model. Duplicate names never overwrite existing chats.

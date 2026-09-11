@@ -27,8 +27,8 @@ chats/*
 !chats/.gitkeep
 # Only the public memory template is versioned
 emotion/*
-!emotion/Example/
+!emotion/Minimal/
 emotion/Example/imports/*
-!emotion/Example/imports/.gitkeep
+!emotion/Minimal/imports/.gitkeep
 
 !emotion/Mika_Demo/
