@@ -77,8 +77,8 @@ npm run dev
 - 设置中修改显示名字、界面语言、主动聊天等待范围和安静时段。界面语言不会修改对话语言。
 - 设置标题右侧显示当前配置模型的可用、未安装或离线状态；可用表示服务可达且模型已安装，不代表正在生成。
 - 每条消息保存时间戳，网页恢复 Markdown 历史。日期显示为 `01/Apr/2026,03:24`，按设备本地时间。
-- 回忆参考最近 20 条和关键词匹配的最多 6 条较早记录，每条上下文最多 4000 字符；不是完整语义搜索。
-- 默认随机等待 10–30 分钟主动找话题，日本时间 23:00–09:00 安静。没有合适话题会跳过，未回应不连续发。时间相同表示关闭安静时段。
+- 回忆参考最近 20 条和关键词匹配的最多 6 条较早记录，每条上下文（含引用）最多 8000 字符；不是完整语义搜索。
+- 默认随机等待 10–30 分钟主动找话题，日本时间 23:00–09:00 安静。没有合适话题会跳过，未回应时，后续按“最短 × 2 + 2”到最长分钟随机等待再发，下限超过上限时按下限等待。时间相同表示关闭安静时段。
 - 网页每 5 秒获取历史；手机锁屏不提供系统通知。
 
 ### 数据与开源
@@ -168,8 +168,8 @@ npm run dev
 - 設定で相手の名前、表示言語、自発的な会話までの待ち時間、おやすみ時間を変更できます。表示言語は会話の言語に影響しません。
 - 設定タイトルの右側に、モデルの利用可能・未インストール・オフライン状態を表示します。利用可能は接続とインストールを確認した状態で、生成中という意味ではありません。
 - 日時付きメッセージを Markdown から復元します。日時は端末の現地時間で `01/Apr/2026,03:24` の形式です。
-- 直近20件とキーワードが一致する過去の最大6件を参照します。1件につき最大4000文字で、意味検索ではありません。
-- 既定の待ち時間は10〜30分、日本時間23:00〜09:00はおやすみ時間です。話題がなければ送信せず、返事がない間は連続送信しません。開始・終了が同じならおやすみ時間は無効です。
+- 直近20件とキーワードが一致する過去の最大6件を参照します。引用を含めて1件につき最大8000文字で、意味検索ではありません。
+- 既定の待ち時間は10〜30分、日本時間23:00〜09:00はおやすみ時間です。話題がなければ送信せず、返事がなければ「最短×2＋2」〜最長分待って再度送信します（下限が上限を超える場合は下限を使用）。開始・終了が同じならおやすみ時間は無効です。
 - 画面は5秒ごとに履歴を取得します。スマートフォンのロック画面通知には対応していません。
 
 ### 非公開データ
@@ -259,8 +259,8 @@ The persona directory can contain `meta.json`, `SKILL.md`, `persona.md`, `memori
 - Settings control the display name, interface language, random proactive delay and quiet hours. Interface language does not change conversation language.
 - Model status beside the settings title reports available, not installed or offline. Available means the service is reachable and the configured model is installed, not necessarily generating.
 - Timestamped messages are restored from Markdown. Dates use device local time in `01/Apr/2026,03:24` format.
-- Recall includes the latest 20 messages and up to 6 older keyword matches, capped at 4000 characters per message. This is not semantic search.
-- Default proactive delay is 10–30 minutes, with quiet hours from 23:00 to 09:00 Japan time. A topic may be skipped; no repeated follow-ups without a user reply. Equal quiet-hour times disable quiet hours.
+- Recall includes the latest 20 messages and up to 6 older keyword matches, capped at 8000 characters per message including quoted context. This is not semantic search.
+- Default proactive delay is 10–30 minutes, with quiet hours from 23:00 to 09:00 Japan time. A topic may be skipped; unanswered proactive messages repeat after a random delay from minimum × 2 + 2 to maximum minutes (clamped to the lower bound if inverted). Equal quiet-hour times disable quiet hours.
 - The page polls history every 5 seconds. Phone lock-screen notifications are not supported.
 
 ### Private data
@@ -272,3 +272,10 @@ Git ignores `archive/`, `Emotion/skill/emotionchat/` and `local.config.json`. Se
 `GET /api/history`, `GET /api/health`, `GET /api/settings`, `PUT /api/settings`, and `POST /api/chat` with JSON `{"message":"Hello"}`.
 
 Run `npm run build` to build the frontend. The development page uses port 5174 and proxies API requests to the loopback-only backend.
+
+
+## 最新交互 / Interaction updates / 操作の更新
+
+- 中文：支持引用回复及可恢复删除；手机长按消息显示操作，删除需确认。手机版适配安全区和紧凑输入栏。关闭“安静中”会从切换时刻按最短到最长重新计时，后续未回复使用上述延长区间。后台收到 AI 新消息时播放提示音，前台及旧记录不响；需先与页面交互解锁音频，手机后台或锁屏可能限制播放。
+- English: Quoted replies and recoverable deletion are supported. Long-press messages on mobile; deletion requires confirmation. Mobile layout uses safe areas and a compact composer. Leaving Quiet mode restarts the initial random timer from the switch time; unanswered follow-ups use the longer range above. New AI messages sound only in the background after audio is unlocked by interaction. Mobile background or lock-screen restrictions may prevent playback.
+- 日本語：引用返信と復元可能な削除に対応。スマートフォンでは長押しで操作を表示し、削除前に確認します。セーフエリアとコンパクトな入力欄に対応。「おやすみ中」を解除すると、その時点から通常の待ち時間を再計算します。未返信時は上記の延長時間で再送します。背景で新しいAIメッセージを受信すると通知音が鳴ります。事前の画面操作が必要で、端末のバックグラウンド・ロック制限により再生されない場合があります。

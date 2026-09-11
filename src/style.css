@@ -336,3 +336,49 @@ body:has(dialog[open]) { overflow: hidden; }
   .settings-fields { grid-template-columns: 1fr 1fr; align-items: start; gap: 10px 18px; }
   .settings-fields > p { grid-column: 2; }
 }
+
+.message { position: relative; max-width: min(680px, calc(100% - 82px)); }
+.message-tools { position: absolute; left: 100%; top: 50%; transform: translateY(-50%); display: flex; gap: 3px; padding: 6px; opacity: 0; pointer-events: none; transition: opacity 120ms ease; }
+.message.user .message-tools { left: auto; right: 100%; }
+.message:hover .message-tools, .message:focus-within .message-tools { opacity: 1; pointer-events: auto; }
+.message-tools button { min-width: 30px; width: 30px; height: 30px; padding: 5px; display: grid; place-items: center; border-radius: 50%; background: #e8edf0; color: #66717a; }
+.message-tools button:hover { background: #dbe3e9; color: #26333e; }
+.message-quote { border-left: 3px solid #aebdcd; padding: 5px 9px; margin: 0 0 10px; background: #ffffff55; border-radius: 4px; white-space: normal; }
+.message-quote span { display: block; font-size: 11px; color: #73808b; }
+.message-quote p { font-size: 13px; color: #63717e; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-wrap; }
+.reply-preview { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; gap: 12px; border-left: 3px solid #9cacc0; padding-left: 10px; min-width: 0; }
+.reply-preview > div { min-width: 0; }
+.reply-preview strong { font-size: 12px; color: #5c6975; }
+.reply-preview p { margin: 3px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #8a959f; font-size: 13px; }
+.reply-preview button { flex-shrink: 0; align-self: center; min-width: 30px; width: 30px; height: 30px; background: transparent; color: #89939c; font-size: 22px; }
+@media (hover: none) { .message { -webkit-touch-callout: none; } .message:hover .message-tools, .message:focus-within .message-tools { opacity: 0; pointer-events: none; } .message.touch-actions-open .message-tools { opacity: 1; pointer-events: auto; } }
+@media (max-width: 420px) { .message-heading { gap: 4px; flex-wrap: wrap; } .message-tools { gap: 1px; padding: 4px; } .message { max-width: calc(100% - 72px); } }
+
+.settings-row, .settings-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); min-width: 0; }
+.settings-fields, .settings-form { min-width: 0; overflow-x: hidden; }
+.settings-fields > *, .settings-row > * { min-width: 0; max-width: 100%; }
+.settings-form input[type="time"] { display: block; box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; appearance: none; -webkit-appearance: none; overflow: hidden; }
+.settings-form input[type="time"]::-webkit-date-and-time-value { min-width: 0; text-align: left; }
+.settings-form input[type="time"]::-webkit-datetime-edit { min-width: 0; padding: 0; }
+.settings-title h2:focus { outline: none; }
+@media (max-width: 420px) { .settings-form input[type="time"] { padding-inline: 6px; } }
+
+
+@media (max-width: 640px) {
+:root, body { background: #fff; }
+body { min-height: 0; }
+.shell { padding: 0; background: #fff; height: 100dvh; }
+.chat { height: 100%; width: 100%; max-height: none; box-shadow: none; grid-template-rows: auto minmax(0, 1fr) auto auto; }
+.topbar { padding: calc(env(safe-area-inset-top, 0px) + 8px) 16px 9px; gap: 12px; }
+.topbar .eyebrow { font-size: 10px; line-height: 1.2; margin-bottom: 2px; }
+.topbar h1 { font-size: 20px; line-height: 1.15; }
+.topbar > div { min-width: 0; }
+.chat-name { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.settings-toggle { height: 36px; width: 36px; min-width: 36px; font-size: 25px; }
+.messages { padding: 12px; overscroll-behavior: contain; }
+.composer { grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 8px; padding: 9px 12px calc(env(safe-area-inset-bottom, 0px) + 9px); }
+.composer > textarea { height: 44px; min-height: 44px; max-height: 120px; padding: 10px 12px; line-height: 22px; border-radius: 22px; overflow-y: auto; }
+.composer > button[type="submit"] { width: auto; min-width: 58px; height: 44px; padding: 0 12px; border-radius: 22px; font-size: 14px; }
+.reply-preview { padding-block: 2px 5px; }
+.error { margin: 0 12px 8px; font-size: 12px; }
+}

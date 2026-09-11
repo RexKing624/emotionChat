@@ -45,7 +45,11 @@ export const translations = {
     "confirmClear": "确认清空",
     "restoreHistory": "恢复上次删除 / 清理",
     "historyActionError": "操作失败，请重试。",
-    "deleteMessage": "删除"
+    "deleteMessage": "删除",
+    "reply": "回复",
+    "replyingTo": "回复 {name}",
+    "cancelReply": "取消回复",
+    "deleteConfirm": "确定删除这条消息吗？删除后将从聊天和回忆检索中移除，可在聊天记录中恢复。"
   },
   "ja": {
     "settings": "設定",
@@ -93,7 +97,11 @@ export const translations = {
     "confirmClear": "消去する",
     "restoreHistory": "前回の削除を復元",
     "historyActionError": "操作に失敗しました。再試行してください。",
-    "deleteMessage": "削除"
+    "deleteMessage": "削除",
+    "reply": "返信",
+    "replyingTo": "{name}への返信",
+    "cancelReply": "返信をキャンセル",
+    "deleteConfirm": "このメッセージを削除しますか？チャットと記憶の検索対象から除外されます。チャット履歴から復元できます。"
   },
   "en": {
     "settings": "Settings",
@@ -141,6 +149,10 @@ export const translations = {
     "confirmClear": "Confirm clear",
     "restoreHistory": "Restore last deletion / clearing",
     "historyActionError": "Operation failed. Please try again.",
-    "deleteMessage": "Delete"
+    "deleteMessage": "Delete",
+    "reply": "Reply",
+    "replyingTo": "Replying to {name}",
+    "cancelReply": "Cancel reply",
+    "deleteConfirm": "Delete this message? It will be removed from chat and memory recall. You can restore it from chat history."
   }
 };

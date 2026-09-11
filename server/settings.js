@@ -9,7 +9,7 @@ export function validateSettings(value) {
   if (!['zh', 'ja', 'en'].includes(language)) throw new Error('Unsupported interface language');
   const proactiveEnabled = value.proactiveEnabled ?? true;
   if (typeof proactiveEnabled !== 'boolean') throw new Error('Invalid proactive setting');
-  return { proactiveEnabled, language, name: value.name.trim(), minMinutes: value.minMinutes, maxMinutes: value.maxMinutes, quietStart: value.quietStart, quietEnd: value.quietEnd };
+  return { proactiveResumedAt: Number.isFinite(value.proactiveResumedAt) ? value.proactiveResumedAt : 0, proactiveEnabled, language, name: value.name.trim(), minMinutes: value.minMinutes, maxMinutes: value.maxMinutes, quietStart: value.quietStart, quietEnd: value.quietEnd };
 }
 export async function readSettings(file) {
   try { return validateSettings(JSON.parse(await fs.readFile(file, 'utf8'))); }

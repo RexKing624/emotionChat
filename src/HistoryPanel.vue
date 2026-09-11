@@ -64,6 +64,7 @@ async function mutate(action){
  catch{error.value=props.t.historyActionError;}finally{busy.value=false;}
 }
 async function deleteMessage(message) {
+ if (!window.confirm(props.t.deleteConfirm)) return;
  busy.value=true;error.value='';
  try {
   const r=await fetch('/api/history/delete-message',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(message)});
