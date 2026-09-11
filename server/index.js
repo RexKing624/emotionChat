@@ -1,4 +1,5 @@
 import express from 'express';
+import aiUrl from '../ai.config.js';
 import { readFileSync } from 'node:fs';
 let localConfig = {};
 try { localConfig = JSON.parse(readFileSync(new URL('../local.config.json', import.meta.url), 'utf8')); }
@@ -13,7 +14,9 @@ import { fileURLToPath } from 'node:url';
 
 const app = express();
 const port = config('PORT') || 3000;
-const ollamaUrl = config('OLLAMA_URL') || 'http://127.0.0.1:11434';
+const parsedAiUrl = new URL(aiUrl);
+if (!['http:', 'https:'].includes(parsedAiUrl.protocol) || parsedAiUrl.search || parsedAiUrl.hash || parsedAiUrl.pathname !== '/') throw new Error('ai.config.js must contain an HTTP(S) service root URL');
+const ollamaUrl = parsedAiUrl.href.replace(/\/$/, '');
 const model = config('OLLAMA_MODEL') || 'qwen3.5:9b';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');

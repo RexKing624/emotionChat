@@ -4,10 +4,27 @@
 
 Ollama・Express・Vue 3 を使ったローカルチャットアプリです。人物設定、Markdown の履歴、キーワードによる記憶の検索、自発的なメッセージ、中国語・日本語・英語の画面表示に対応します。
 
+## AI モデルはどこから来ますか？
+
+EmotionChat 自体にはモデルやクラウドアカウントは含まれません。返信は、自分で起動した、または接続可能な **Ollama サービス**が生成します。Ollama API 専用で、一般のチャットサイトや OpenAI 互換 API には対応していません。
+
+ルートの **`ai.config.js`** のアドレスだけを変更します。
+
+```js
+export default 'http://127.0.0.1:11434';
+```
+
+バックエンドと同じパソコンならこのまま使えます。別の端末なら `http://モデル端末のLAN_IP:11434` または解決可能なホスト名を指定してください。`/api/chat` を付けず、サービスのルートを入力します。バックエンドから接続できる必要があります。スマートフォンでは従来どおり EmotionChat の画面を開きます。変更後は `npm run dev` を再起動してください。
+
+既定モデルは `qwen3.5:9b` です。モデル端末に Ollama をインストールして `ollama pull qwen3.5:9b` を実行してください。別のインストール済みモデルを使う場合は、任意の `local.config.json` の `OLLAMA_MODEL` を変更します。アドレスファイルだけではモデルはインストールされません。
+
+接続先は `ai.config.js` のみから読み込みます。以前の `OLLAMA_URL` 環境変数と local.config.json の項目は使用しません。公開前に個人用アドレスをサンプルに戻してください。
+
+
 ## 2ステップ：記憶テーマを取り込み、モデルに接続
 
 1. 1つの記憶テーマを `Emotion/` に配置します。exskill、別のツール、または手作業で整理した Markdown を使えます。
-2. `local.config.example.json` を `local.config.json` にコピーし、`OLLAMA_URL` と `OLLAMA_MODEL` を設定して、以下の起動コマンドを実行します。
+2. `local.config.example.json` を `local.config.json` にコピーし、`ai.config.js` の接続先と必要に応じて `OLLAMA_MODEL` を設定して、以下の起動コマンドを実行します。
 
 ```text
 Emotion/
@@ -36,7 +53,7 @@ npm install
 cp local.config.example.json local.config.json
 npm run dev
 ```
-`local.config.json` にモデルの接続先と非公開の人物資料フォルダーを設定します。環境変数はこのファイルより優先されます。
+`local.config.json` に任意のモデル名と非公開の人物資料フォルダーを設定します。環境変数はこのファイルより優先されます。
 
 パソコンでは http://127.0.0.1:5174/ 、同じ LAN のスマートフォンでは `http://パソコンのLAN_IP:5174/` を開きます。バックエンドを起動したままにしてください。認証機能はないため、信頼できる LAN で使用してください。
 
@@ -45,7 +62,6 @@ npm run dev
 | 項目 | 既定値・用途 |
 | --- | --- |
 | `PORT` | `3000`。変更時は Vite のプロキシも変更 |
-| `OLLAMA_URL` | `http://127.0.0.1:11434` |
 | `OLLAMA_MODEL` | `qwen3.5:9b` |
 | `EXSKILL_DIR` | `Emotion/skill/emotionchat/` |
 | `CHAT_ARCHIVE_PATH` | `archive/chat.md` |

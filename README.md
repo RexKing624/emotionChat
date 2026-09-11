@@ -4,10 +4,27 @@
 
 本地 Ollama + Express + Vue 3 聊天应用。支持人物资料、Markdown 历史、相关回忆检索、主动聊天，以及中文、日文、英文界面。
 
+## AI 模型来自哪里？地址在哪里填写？
+
+EmotionChat 不附带 AI 模型，也不使用本项目提供的云端账号。回复由你自己运行或可访问的 **Ollama 服务**生成。当前接口支持 Ollama，不是任意聊天网站或 OpenAI 兼容接口。
+
+打开根目录的 **`ai.config.js`**，只修改其中这一行地址：
+
+```js
+export default 'http://127.0.0.1:11434';
+```
+
+模型在当前电脑运行时使用上面的地址；在另一台电脑上运行时，填 `http://模型电脑的局域网IP:11434` 或可解析的主机名。填写服务根地址，不要加 `/api/chat`。手机仍然访问 EmotionChat 页面，模型地址应当能从后端所在电脑访问。修改后重启 `npm run dev`。
+
+默认请求模型 `qwen3.5:9b`。请在模型电脑上安装 Ollama 并运行 `ollama pull qwen3.5:9b`。如果使用其他已安装模型，在可选的 `local.config.json` 中修改 `OLLAMA_MODEL`。地址和模型名称不同：`ai.config.js` 只设置地址，不能自动安装模型。
+
+地址以 `ai.config.js` 为唯一来源。旧的 `OLLAMA_URL` 环境变量和 local.config.json 字段不再生效。公开提交前将私人地址恢复为示例地址。
+
+
 ## 两步开始：导入回忆主题，连接模型
 
 1. 将一个回忆主题放进 `Emotion/`。可以使用 exskill 蒸馏，也可以用其他工具或自己整理，按下方文件结构放入 Markdown 文本。
-2. 复制 `local.config.example.json` 为 `local.config.json`，填写 `OLLAMA_URL` 和 `OLLAMA_MODEL`，执行下方启动命令即可聊天。
+2. 复制 `local.config.example.json` 为 `local.config.json`，在 `ai.config.js` 填写地址，并按需配置 `OLLAMA_MODEL`，执行下方启动命令即可聊天。
 
 ```text
 Emotion/
@@ -36,7 +53,7 @@ npm install
 cp local.config.example.json local.config.json
 npm run dev
 ```
-编辑 `local.config.json`，填写模型地址及本地人物目录。环境变量优先于本地配置。
+编辑 `local.config.json`，填写可选模型名称及本地人物目录。环境变量优先于本地配置。
 
 电脑打开 http://127.0.0.1:5174/ 。手机连接同一局域网，打开 `http://电脑局域网IP:5174/`。后台需保持运行；仅在可信局域网使用，当前没有登录验证。
 
@@ -45,7 +62,6 @@ npm run dev
 | 项目 | 默认值 / 用途 |
 | --- | --- |
 | `PORT` | `3000`，后端端口；修改时同步调整 Vite 代理 |
-| `OLLAMA_URL` | `http://127.0.0.1:11434` |
 | `OLLAMA_MODEL` | `qwen3.5:9b` |
 | `EXSKILL_DIR` | `Emotion/skill/emotionchat/`，本地人物资料目录 |
 | `CHAT_ARCHIVE_PATH` | `archive/chat.md` |

@@ -4,10 +4,27 @@
 
 A local chat application built with Ollama, Express and Vue 3. Includes persona context, Markdown history, keyword memory recall, proactive messages, and Chinese, Japanese and English interfaces.
 
+## Where does the AI model come from?
+
+EmotionChat does not include model weights or a hosted AI account. Replies come from an **Ollama service you run or can access**. This integration supports the Ollama API, not arbitrary chat websites or OpenAI-compatible endpoints.
+
+Edit only the address in the root **`ai.config.js`** file:
+
+```js
+export default 'http://127.0.0.1:11434';
+```
+
+Use this address for Ollama on the backend computer. For another computer, use `http://MODEL_COMPUTER_LAN_IP:11434` or its resolvable hostname. Enter the service root without `/api/chat`. The backend must be able to reach it; phones still open the EmotionChat page. Restart `npm run dev` after editing.
+
+The default model is `qwen3.5:9b`. Install Ollama on the model computer and run `ollama pull qwen3.5:9b`. To use another installed model, set `OLLAMA_MODEL` in optional `local.config.json`. The address file does not install model weights.
+
+`ai.config.js` is the sole endpoint source. Legacy `OLLAMA_URL` environment variables and local.config.json fields are no longer used. Restore the example address before publishing private changes.
+
+
 ## Two steps: import a memory theme, connect a model
 
 1. Put one memory theme in `Emotion/`. Distill it with exskill, another tool, or by hand, and place the Markdown text in the structure below.
-2. Copy `local.config.example.json` to `local.config.json`, set `OLLAMA_URL` and `OLLAMA_MODEL`, and run the setup commands below.
+2. Copy `local.config.example.json` to `local.config.json`, set the address in `ai.config.js` and optionally `OLLAMA_MODEL`, and run the setup commands below.
 
 ```text
 Emotion/
@@ -36,7 +53,7 @@ npm install
 cp local.config.example.json local.config.json
 npm run dev
 ```
-Edit `local.config.json` with your model endpoint and private persona directory. Environment variables override this file.
+Edit `local.config.json` with your optional model name and private persona directory. Environment variables override this file.
 
 Open http://127.0.0.1:5174/ on the computer, or `http://COMPUTER_LAN_IP:5174/` on a phone on the same network. Keep the backend running. Use a trusted LAN; authentication is not included.
 
@@ -45,7 +62,6 @@ Open http://127.0.0.1:5174/ on the computer, or `http://COMPUTER_LAN_IP:5174/` o
 | Key | Default / purpose |
 | --- | --- |
 | `PORT` | `3000`; update the Vite proxy if changed |
-| `OLLAMA_URL` | `http://127.0.0.1:11434` |
 | `OLLAMA_MODEL` | `qwen3.5:9b` |
 | `EXSKILL_DIR` | `Emotion/skill/emotionchat/` |
 | `CHAT_ARCHIVE_PATH` | `archive/chat.md` |
