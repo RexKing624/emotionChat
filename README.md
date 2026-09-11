@@ -4,6 +4,25 @@
 
 ## 中文
 
+### 先让 AI 连上：推荐模型和网页在同一台电脑
+
+1. 在这台电脑安装并启动 Ollama，打开终端执行 `ollama pull qwen3.5:9b`，等待模型下载完成。
+2. `ai.config.js` 保持默认：`export default 'http://127.0.0.1:11434';`。这个地址是 Ollama，不是网页地址。
+3. 在本项目目录执行 `npm install`，再执行 `npm run dev`。首次启动会自动创建缺失的 local.config.json，无需手动复制。
+4. 打开 `http://127.0.0.1:5174/`，设置六位密码。新建聊天，填名字并选择 **Mika_Demo**，即可先体验；它是完全虚构的示例资料。
+5. 设置里模型显示“可用”后，发第一条消息开始对话。显示“未安装”时检查模型名；“离线”时检查 Ollama 是否启动、地址是否可达。
+
+**只有模型在另一台电脑上时才改地址**：把 ai.config.js 中的地址换成 `http://模型电脑局域网IP:11434`，并确保那台电脑的 Ollama 允许局域网连接。`127.0.0.1` 永远指运行后端的电脑；手机不需要安装模型，只打开网页。
+
+| 你要做什么 | 在哪里改 |
+| --- | --- |
+| 连接模型服务 | ai.config.js：地址，通常端口11434 |
+| 选择已安装模型 | local.config.json：OLLAMA_MODEL |
+| 打开聊天网页 | 浏览器：端口5174 |
+| 换成自己的回忆 | emotion/ 下新增回忆子文件夹 |
+
+
+
 一个基于 Vue 3、Express 和 Ollama 的本地 AI 聊天应用。导入人物设定与回忆，连接自己的模型，即可聊天。使用本机模型时，资料无需发送给云端模型。
 
 ### 启动
@@ -12,7 +31,6 @@
 
 ```sh
 npm install
-cp local.config.example.json local.config.json
 npm run dev
 ```
 
@@ -57,6 +75,7 @@ runtime/
 - 点击“安静”立即关闭主动聊天，重新开启时重新计算等待时间。打开过的聊天可在后台继续按自己的计划运行。
 - 每条消息带时间戳，显示格式 `01/Apr/2026,03:24`，使用设备本地时间。支持引用回复、记录查询和手机长按操作。
 - 后台收到新消息时标签显示未读数和红点，回到页面清除；交互解锁音频后可播放提示音。浏览器后台节流或手机锁屏可能延迟提示，不提供系统推送。
+- 设置标题下显示当前回忆文件夹名。“删除对话”只把聊天 MD 顶部标记设为 `deleted:true`，不删除正文或回忆。聊天列表旁的“恢复对话”使用数字键盘重新验证原密码，恢复为 `deleted:false`。
 - 密码仅以带随机盐的 scrypt 哈希保存到与 ai.config.js 同级的 `auth.config.json`。五次失败后等待30秒，会话最长12小时，后端重启后重新解锁。
 - 密码保护网页和 API 访问，不加密磁盘文件。当前使用局域网 HTTP，请仅在可信网络使用。不要公开 auth.config.json、local.config.json、私人模型地址、emotion 素材、chats 或 runtime 数据。
 
@@ -66,6 +85,18 @@ runtime/
 
 ## 日本語
 
+### 最短の始め方：モデルとアプリを同じパソコンで動かす
+
+1. Ollama をインストールして起動し、`ollama pull qwen3.5:9b` の完了を待ちます。
+2. ai.config.js は既定の `http://127.0.0.1:11434` のままにします。これはモデルの接続先です。
+3. プロジェクトで `npm install`、`npm run dev` を実行します。local.config.json は未作成なら自動生成されます。
+4. `http://127.0.0.1:5174/` を開き、6桁のパスコードを設定。「新しいチャット」で名前と架空の **Mika_Demo** を選べば試せます。
+5. 設定のモデル状態が利用可能になったら送信します。未インストールならモデル名、オフラインなら Ollama の起動と接続先を確認してください。
+
+別のパソコンのモデルだけ、ai.config.js を `http://モデル端末のLAN_IP:11434` に変更し、Ollama 側でLAN接続を許可します。モデル名は local.config.json の OLLAMA_MODEL、画面は5174番ポートです。スマートフォンにモデルを入れる必要はありません。
+
+
+
 Vue 3、Express、Ollama を使うローカルAIチャットです。人物設定と記憶を読み込み、自分のモデルに接続します。端末内のモデルなら、資料をクラウドAIへ送る必要はありません。
 
 ### 起動
@@ -74,7 +105,6 @@ Node.js 22+ と Ollama が必要です。
 
 ```sh
 npm install
-cp local.config.example.json local.config.json
 npm run dev
 ```
 
@@ -101,6 +131,8 @@ npm run dev
 
 日時、引用返信、履歴検索、確認付き削除、モバイル長押しに対応します。バックグラウンドの新着はタブに未読数と赤い印を表示します。音はブラウザ操作後に利用可能で、ロック画面やバックグラウンドでは遅れる場合があります。システムプッシュ通知はありません。
 
+設定には記憶フォルダー名も表示します。会話の削除は MD の deleted フラグだけを変更し、内容を残します。「会話を復元」で同じパスコードを再入力すると復元できます。
+
 パスコードはソルト付き scrypt ハッシュのみを auth.config.json に保存します。5回失敗で30秒待機、セッションは最大12時間、再起動後は再解除が必要です。ディスクのMDは暗号化しません。信頼できるLANで使用し、パスコード設定、個人設定、記憶、履歴、runtime を公開しないでください。
 
 設定は OLLAMA_MODEL、MEMORIES_DIR（./emotion）、CHAT_RECORDS_DIR（./chats）、PORT（3000）。環境変数が優先され、モデルURLは ai.config.js のみです。旧形式は自動移行しません。更新前にバックアップしてください。
@@ -108,6 +140,18 @@ npm run dev
 検証：`npm run build`、`node --test server/access.test.js`。
 
 ## English
+
+### Fastest setup: run Ollama and EmotionChat on the same computer
+
+1. Install and start Ollama, then run `ollama pull qwen3.5:9b` and wait for the download to finish.
+2. Keep ai.config.js at its default `http://127.0.0.1:11434`. This is the model service, not the chat website.
+3. Run `npm install` and `npm run dev` in this project. Missing local.config.json is created automatically.
+4. Open `http://127.0.0.1:5174/`, set your six-digit passcode, and create a named chat using the fictional **Mika_Demo** memory model.
+5. Check that Settings shows the model as available, then send your first message. If missing, check the installed model name. If offline, check Ollama is running and reachable.
+
+Only change the URL when Ollama runs on another computer: use `http://MODEL_COMPUTER_LAN_IP:11434` and enable LAN connections in that Ollama installation. Localhost refers to the backend computer. The model name belongs in local.config.json under OLLAMA_MODEL; the website uses port5174. Phones only need the website.
+
+
 
 A local AI chat app built with Vue 3, Express and Ollama. Import personas and memories and connect your own model. With an on-device model, private material need not be sent to a cloud AI service.
 
@@ -117,7 +161,6 @@ Requires Node.js 22+ and a reachable Ollama service.
 
 ```sh
 npm install
-cp local.config.example.json local.config.json
 npm run dev
 ```
 
@@ -146,8 +189,13 @@ Adjust display name, interface language, proactive timing and quiet hours. Proac
 
 Supports timestamps, quoted replies, history search, confirmed deletion and mobile long-press actions. Background arrivals update the tab's unread count and dot; audio needs a browser interaction to unlock. Background throttling or phone lock screens can delay alerts; system push is not provided.
 
+Settings displays the memory folder name. Delete chat only sets a deleted flag in the MD; content and memories remain intact. Restore chats verifies the same passcode with the numeric keypad before clearing that flag.
+
 Only a salted scrypt hash is stored in auth.config.json, beside ai.config.js. Five failed attempts trigger a 30-second cooldown; sessions last up to 12 hours and end on backend restart. The passcode protects app/API access, not files on disk. Use HTTP access only on a trusted LAN. Never publish passcode configuration, private endpoints, memory files, chats or runtime data.
 
 Optional settings: OLLAMA_MODEL, MEMORIES_DIR (./emotion), CHAT_RECORDS_DIR (./chats), PORT (3000). Environment variables take precedence. The model URL comes only from ai.config.js. Legacy layouts are not migrated automatically; back up before upgrading.
 
 Validation: `npm run build`; backend tests: `node --test server/access.test.js`.
+
+
+Mika_Demo contains 1200 fictional, programmatically organized reference messages across 50 scenarios. It is synthetic format/example data, not a real conversation export.

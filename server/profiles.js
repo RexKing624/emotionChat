@@ -17,10 +17,11 @@ async function readIndex(runtimeRoot){try{return JSON.parse(await fs.readFile(pa
 export async function listProfiles(objectsRoot, archiveRoot, runtimeRoot) {
   const memories=await listMemories(objectsRoot),index=await readIndex(runtimeRoot);
   let files;try{files=await fs.readdir(archiveRoot,{withFileTypes:true});}catch(e){if(e.code==='ENOENT')return [];throw e;}
-  return files.filter(f=>f.isFile()&&f.name.endsWith('.md')).map(f=>{
+  return Promise.all(files.filter(f=>f.isFile()&&f.name.endsWith('.md')).map(async f=>{
     const name=f.name.slice(0,-3),memory=memories.find(m=>m.name===index[name]);
-    return {id:idFor(name),name,directory:memory?.directory,theme:memory?.theme,memoryName:memory?.name,archive:path.join(archiveRoot,f.name),runtime:path.join(runtimeRoot,idFor(name))};
-  });
+    const deleted=(await fs.readFile(path.join(archiveRoot,f.name),'utf8')).startsWith('<!-- deleted:true -->');
+    return {deleted,id:idFor(name),name,directory:memory?.directory,theme:memory?.theme,memoryName:memory?.name,archive:path.join(archiveRoot,f.name),runtime:path.join(runtimeRoot,idFor(name))};
+  }));
 }
 export async function startProfile(objectsRoot, archiveRoot, runtimeRoot, input) {
   const name=typeof input?.name==='string'?input.name.trim():'';
@@ -33,4 +34,12 @@ export async function startProfile(objectsRoot, archiveRoot, runtimeRoot, input)
   try{const index=await readIndex(runtimeRoot);index[name]=memory.name;const file=path.join(runtimeRoot,'chat-index.json');await fs.writeFile(file+'.tmp',JSON.stringify(index,null,2));await fs.rename(file+'.tmp',file);}
   catch(e){await fs.unlink(archive);throw e;}
   return {id:idFor(name),name};
+}
+
+export async function setDeleted(profile, deleted) {
+ const raw=await fs.readFile(profile.archive,'utf8');
+ const body=raw.replace(/^<!-- deleted:(?:true|false) -->\r?\n/, '');
+ const temporary=profile.archive+'.status.tmp';
+ await fs.writeFile(temporary,`<!-- deleted:${deleted} -->\n`+body);
+ await fs.rename(temporary,profile.archive);
 }

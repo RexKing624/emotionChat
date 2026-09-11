@@ -63,7 +63,7 @@
     <HistoryPanel ref="historyPanel" :messages="messages" :name="settings.name" :t="t" :language="language" :loading="loading" @changed="loadHistory()" @jump="jumpToMessage" />
     <dialog ref="settingsDialog" class="settings-dialog" @pointerdown="backdropStart" @click="backdropClose($event, saving)" @close="settingsOpen = false">
       <form @submit.prevent="saveSettings" class="settings-form">
-        <div class="settings-title"><h2 ref="settingsHeading" tabindex="-1" autofocus>{{ t.settings }}</h2><span class="model-status" :class="modelHealth.status" role="status">{{ modelHealth.model }} · {{ t[modelHealth.status] }}</span></div>
+        <div class="settings-title"><h2 ref="settingsHeading" tabindex="-1" autofocus>{{ t.settings }}</h2><div class="settings-meta"><button type="button" class="delete-chat" :disabled="loading || saving" @click="removeChat">{{ chatText.remove }}</button><span class="model-status" :class="modelHealth.status" role="status">{{ modelHealth.model }} · {{ t[modelHealth.status] }}</span></div><small class="settings-memory" :title="memoryName">{{ memoryName }}</small></div>
         <div class="settings-fields">
         <label>{{ t.name }}<input v-model="draft.name" maxlength="40" required /></label>
         <fieldset><legend>{{ t.language }}</legend>
@@ -72,7 +72,7 @@
           </div>
         </fieldset>
         <p>{{ t.languageHint }}</p>
-        <fieldset><legend class="proactive-heading"><span>{{ t.proactive }}</span><button type="button" class="quiet-toggle" :class="{ active: !settings.proactiveEnabled }" :aria-pressed="!settings.proactiveEnabled" :disabled="saving" @click="toggleProactive">{{ settings.proactiveEnabled ? t.silent : t.silentActive }}</button></legend>
+        <fieldset><legend class="proactive-heading"><span>{{ t.proactive }}</span><span class="quiet-controls"><small class="quiet-tip" :title="settings.proactiveEnabled ? chatText.quietTip : chatText.activeTip">{{ settings.proactiveEnabled ? chatText.quietTip : chatText.activeTip }}</small><button type="button" class="quiet-toggle" :class="{ active: !settings.proactiveEnabled }" :aria-pressed="!settings.proactiveEnabled" :disabled="saving" @click="toggleProactive">{{ settings.proactiveEnabled ? t.silent : t.silentActive }}</button></span></legend>
           <p>{{ settings.proactiveEnabled ? t.proactiveHint : t.silentHint }}</p>
           <div class="settings-row">
             <label>{{ t.min }}<input type="number" :disabled="!settings.proactiveEnabled" v-model.number="draft.minMinutes" min="1" max="1440" required /></label>
@@ -179,6 +179,10 @@ watchEffect(() => {
   document.title = `${settings.value.name} · EmotionChat`;
   document.documentElement.lang = { zh: 'zh-CN', ja: 'ja', en: 'en' }[language.value];
 });
+const emit = defineEmits(['back']);
+const memoryName = ref('');
+const chatText=computed(()=>({zh:{activeTip:'点这里，恢复主动',quietTip:'点这里，让 TA 安静',remove:'删除对话',confirm:'删除这个对话？记录会保留，可验证密码后恢复；回忆文件不变。'},ja:{activeTip:'タップで会話を再開',quietTip:'タップでおやすみ',remove:'会話を削除',confirm:'会話を非表示にしますか？パスコードで復元できます。記憶は変更しません。'},en:{activeTip:'Tap to resume chats',quietTip:'Tap to pause chats',remove:'Delete chat',confirm:'Hide this chat? Restore it with your passcode later. Memory files stay unchanged.'}}[language.value]));
+async function removeChat(){if(!window.confirm(chatText.value.confirm))return;saving.value=true;try{const response=await fetch('/api/delete',{method:'POST'});if(!response.ok)throw Error();settingsDialog.value.close();emit('back');}catch{error.value=t.value.chatError;}finally{saving.value=false;}}
 const modelHealth = ref({ model: '', status: 'checking' });
 let healthBusy = false;
 async function refreshModelHealth() {
@@ -274,6 +278,7 @@ async function loadHistory(background = false) {
   const data = await response.json();
   if (!response.ok) throw new Error(t.value.historyError);
   if (background && (loading.value || snapshot !== JSON.stringify(messages.value))) return;
+  memoryName.value = data.memoryName || '';
   if (data.settings && !saving.value) settings.value = data.settings;
   const incoming = trackIncoming(data.messages || []);
   if (incoming) { messageSound.play(); tabNotification.receive(incoming); }

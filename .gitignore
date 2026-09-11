@@ -30,3 +30,5 @@ emotion/*
 !emotion/Example/
 emotion/Example/imports/*
 !emotion/Example/imports/.gitkeep
+
+!emotion/Mika_Demo/

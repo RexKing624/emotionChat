@@ -41,5 +41,12 @@ export function createAccess(authPath) {
     } catch { res.status(500).json({error:'unlock_failed'}); }
   });
   router.post('/lock', (req,res) => { sessions.delete(token(req)); res.setHeader('Set-Cookie','emotion_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'); res.json({ok:true}); });
-  return {router, guard(req,res,next) { if(!authorized(req)) return res.status(401).json({error:'locked'}); next(); }};
+  return {router, async verifyPin(pin) {
+    if(Date.now()<blockedUntil) throw Object.assign(new Error('try_later'),{status:429});
+    if(typeof pin !== 'string'||!/^\d{6}$/.test(pin))throw Object.assign(new Error('six_digits'),{status:400});
+    failures++;if(failures>=5)blockedUntil=Date.now()+30000;
+    const saved=await read();
+    if(!saved || !timingSafeEqual(await scrypt(pin,saved.salt,64),Buffer.from(saved.hash,'hex')))throw Object.assign(new Error('wrong_pin'),{status:403});
+    failures=0;blockedUntil=0;
+  }, guard(req,res,next) { if(!authorized(req)) return res.status(401).json({error:'locked'}); next(); }};
 }

@@ -382,3 +382,18 @@ body { min-height: 0; }
 .reply-preview { padding-block: 2px 5px; }
 .error { margin: 0 12px 8px; font-size: 12px; }
 }
+
+.settings-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:0}.settings-meta small{color:#87909a;font-size:12px;max-width:220px;overflow-wrap:anywhere}.settings-meta .delete-chat{padding:2px 8px;border:0;background:transparent;color:#bd5555;font-size:12px;cursor:pointer}
+
+/* Keep the two compact status lines within the title's row. */
+.settings-title { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:4px 12px; }
+.settings-title h2 { line-height:36px; }
+.settings-meta { height:36px; gap:2px; justify-content:center; overflow:hidden; }
+.settings-meta .delete-chat { display:block; width:auto; min-width:0; min-height:0; height:16px; line-height:16px; margin:0; padding:0; font-size:11px; border-radius:0; }
+.settings-meta .model-status { display:block; max-width:100%; line-height:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.settings-memory { grid-column:1 / -1; color:#87909a; font-size:11px; font-weight:400; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.settings-form .proactive-heading { gap:8px; }
+.proactive-heading > span:first-child { min-width:0; white-space:nowrap; font-size:clamp(12px,3.4vw,16px); }
+.quiet-controls { display:flex; align-items:center; justify-content:flex-end; gap:6px; min-width:0; }
+.quiet-tip { min-width:0; font-size:10px; font-weight:400; color:#87909a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.quiet-controls .quiet-toggle { flex-shrink:0; }

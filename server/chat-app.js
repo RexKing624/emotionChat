@@ -19,6 +19,7 @@ catch (error) { if (error.code !== 'ENOENT') throw error; }
 const config = key => process.env[key] ?? localConfig[key];
 
 const app = express();
+let stopped = false;
 
 const parsedAiUrl = new URL(aiUrl);
 if (!['http:', 'https:'].includes(parsedAiUrl.protocol) || parsedAiUrl.search || parsedAiUrl.hash || parsedAiUrl.pathname !== '/') throw new Error('ai.config.js must contain an HTTP(S) service root URL');
@@ -111,6 +112,7 @@ async function readArchive() {
 }
 
 async function appendMessage(message) {
+  if(stopped) throw new Error('Chat closed');
   await fs.mkdir(path.dirname(archivePath), { recursive: true });
   try { await fs.writeFile(archivePath, '# EmotionChat Archive\n\n', { flag: 'wx' }); }
   catch (error) { if (error.code !== 'EEXIST') throw error; }
@@ -153,7 +155,7 @@ app.put('/api/settings', async (req, res) => {
   settingsQueue = settingsQueue.then(task, task);
 });
 app.get('/api/history' , async (_req, res) => {
-  try { res.set('Cache-Control', 'no-store').json({ ...await readArchive(), model, settings: await readSettings(settingsPath) }); }
+  try { res.set('Cache-Control', 'no-store').json({ ...await readArchive(), model, memoryName: profile.memoryName || '', settings: await readSettings(settingsPath) }); }
   catch (error) { res.status(500).json({ error: `读取存档失败：${error.message}` }); }
 });
 
@@ -380,5 +382,5 @@ const timer = setInterval(() => {
   chatQueue = chatQueue.then(task, task);
 }, 15000).unref();
 
-return { app, dispose: () => clearInterval(timer) };
+return { app, dispose: async () => { stopped=true;userRevision++;clearInterval(timer);await Promise.allSettled([chatQueue,settingsQueue]); } };
 }
