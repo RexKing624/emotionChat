@@ -1,5 +1,6 @@
 export function messageBlock(message) {
-  const metadata = message.replyTo ? `<!-- reply:${Buffer.from(JSON.stringify(message.replyTo)).toString('base64')} -->\n\n` : '';
+  let metadata = message.replyTo ? `<!-- reply:${Buffer.from(JSON.stringify(message.replyTo)).toString('base64')} -->\n\n` : '';
+  if (message.sources?.length) metadata += `<!-- sources:${Buffer.from(JSON.stringify(message.sources)).toString('base64')} -->\n\n`;
   const content = message.content.split('\n').map(line => `> ${line}`).join('\n');
   return `## ${message.timestamp}\n\n### ${message.role === 'user' ? 'User' : 'Assistant'}\n\n${metadata}${content}\n\n---\n`;
 }
@@ -24,4 +25,14 @@ export function modelContent(message) {
 export function cleanModelReply(value) {
   if (typeof value !== 'string') return '';
   return value.replace(/^(?:\s*\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})\]\s*)+/, '').trim();
+}
+
+export function decodeSources(body) {
+ const match=body.match(/^<!-- sources:([A-Za-z0-9+/=]+) -->\s*/);
+ if(!match)return {body};
+ try{
+  const sources=JSON.parse(Buffer.from(match[1],'base64').toString('utf8'));
+  if(!Array.isArray(sources))return {body};
+  return {body:body.slice(match[0].length),sources:sources.filter(s=>typeof s.title==='string' && typeof s.url==='string' && /^https:\/\/news\.google\.com\//.test(s.url)).slice(0,3)};
+ }catch{return {body};}
 }

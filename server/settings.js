@@ -1,6 +1,6 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-export const defaults = { proactiveEnabled: true, language: 'zh', name: 'Assistant', minMinutes: 10, maxMinutes: 30, quietStart: '23:00', quietEnd: '09:00' };
+export const defaults = { realityEnabled: false, realityIntensity: 3, proactiveEnabled: true, language: 'zh', name: 'Assistant', minMinutes: 10, maxMinutes: 30, quietStart: '23:00', quietEnd: '09:00' };
 export function validateSettings(value) {
   if (!value || typeof value.name !== 'string' || !value.name.trim() || value.name.trim().length > 40 || /[\r\n]/.test(value.name)) throw new Error('名字需为 1–40 个字符');
   if (![value.minMinutes, value.maxMinutes].every(n => Number.isInteger(n) && n >= 1 && n <= 1440) || value.minMinutes > value.maxMinutes) throw new Error('等待时间需为 1–1440 分钟，最短不能大于最长');
@@ -9,7 +9,10 @@ export function validateSettings(value) {
   if (!['zh', 'ja', 'en'].includes(language)) throw new Error('Unsupported interface language');
   const proactiveEnabled = value.proactiveEnabled ?? true;
   if (typeof proactiveEnabled !== 'boolean') throw new Error('Invalid proactive setting');
-  return { proactiveResumedAt: Number.isFinite(value.proactiveResumedAt) ? value.proactiveResumedAt : 0, proactiveEnabled, language, name: value.name.trim(), minMinutes: value.minMinutes, maxMinutes: value.maxMinutes, quietStart: value.quietStart, quietEnd: value.quietEnd };
+  const realityEnabled = value.realityEnabled ?? false;
+  const realityIntensity = value.realityIntensity ?? 3;
+  if (typeof realityEnabled !== 'boolean' || !Number.isInteger(realityIntensity) || realityIntensity < 0 || realityIntensity > 8) throw new Error('Invalid reality settings');
+  return { realityEnabled, realityIntensity, proactiveResumedAt: Number.isFinite(value.proactiveResumedAt) ? value.proactiveResumedAt : 0, proactiveEnabled, language, name: value.name.trim(), minMinutes: value.minMinutes, maxMinutes: value.maxMinutes, quietStart: value.quietStart, quietEnd: value.quietEnd };
 }
 export async function readSettings(file) {
   try { return validateSettings(JSON.parse(await fs.readFile(file, 'utf8'))); }

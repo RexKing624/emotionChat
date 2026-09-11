@@ -34,6 +34,10 @@
             <time v-if="message.timestamp" :datetime="message.timestamp">{{ formatTime(message.timestamp) }}</time>
           </div>
           <p>{{ message.content }}</p>
+          <details v-if="message.sources?.length" class="message-sources" @pointerdown.stop>
+            <summary>{{ {zh:'查看来源',ja:'出典を見る',en:'View sources'}[language] }}</summary>
+            <a v-for="source in message.sources" :key="source.url" :href="source.url" target="_blank" rel="noopener noreferrer">{{ source.title }}<small>{{ source.source }} · {{ source.publishedAt?.slice(0,10) }}</small></a>
+          </details>
         </article>
 
         <article v-if="loading && showTyping" class="message assistant typing-message" role="status" :aria-label="t.typing">
@@ -66,12 +70,14 @@
         <div class="settings-title"><h2 ref="settingsHeading" tabindex="-1" autofocus>{{ t.settings }}</h2><div class="settings-meta"><button type="button" class="delete-chat" :disabled="loading || saving" @click="removeChat">{{ chatText.remove }}</button><span class="model-status" :class="modelHealth.status" role="status">{{ modelHealth.model }} · {{ t[modelHealth.status] }}</span></div><small class="settings-memory" :title="memoryName">{{ memoryName }}</small></div>
         <div class="settings-fields">
         <label>{{ t.name }}<input v-model="draft.name" maxlength="40" required /></label>
-        <fieldset><legend>{{ t.language }}</legend>
-          <div class="language-buttons" role="group" :aria-label="t.language">
-            <button v-for="option in languageOptions" :key="option.value" type="button" :aria-pressed="language === option.value" :class="{ selected: language === option.value }" :disabled="saving" @click="applyLanguage(option.value)">{{ option.label }}</button>
-          </div>
+        <fieldset class="reality-settings">
+          <legend class="proactive-heading"><span>{{ realityText.title }}</span><button type="button" class="reality-switch" role="switch" :aria-label="realityText.title" :aria-checked="settings.realityEnabled" :class="{ enabled: settings.realityEnabled }" :disabled="saving" @click="saveReality({ realityEnabled: !settings.realityEnabled })"><span></span></button></legend>
+          <p>{{ realityText.hint }}</p>
+          <label class="reality-label" for="reality-intensity"><span>{{ realityText.intensity }}</span><output>{{ draft.realityIntensity ?? 3 }}</output></label>
+          <input id="reality-intensity" type="range" min="0" max="8" step="1" v-model.number="draft.realityIntensity" :disabled="!settings.realityEnabled || saving" @change="saveReality({ realityIntensity: draft.realityIntensity })" />
+          <div class="reality-scale"><span>{{ realityText.low }}</span><span>{{ realityText.high }}</span></div>
+          <p>{{ realityText.note }}</p>
         </fieldset>
-        <p>{{ t.languageHint }}</p>
         <fieldset><legend class="proactive-heading"><span>{{ t.proactive }}</span><span class="quiet-controls"><small class="quiet-tip" :title="settings.proactiveEnabled ? chatText.quietTip : chatText.activeTip">{{ settings.proactiveEnabled ? chatText.quietTip : chatText.activeTip }}</small><button type="button" class="quiet-toggle" :class="{ active: !settings.proactiveEnabled }" :aria-pressed="!settings.proactiveEnabled" :disabled="saving" @click="toggleProactive">{{ settings.proactiveEnabled ? t.silent : t.silentActive }}</button></span></legend>
           <p>{{ settings.proactiveEnabled ? t.proactiveHint : t.silentHint }}</p>
           <div class="settings-row">
@@ -98,14 +104,16 @@
 </template>
 
 <script setup>
+import { createLocalEnvironment } from './localEnvironment.js';
 import { apiFetch as fetch } from './api.js';
-import { computed, nextTick, onMounted, onUnmounted, ref, watchEffect } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
 import { backdropStart, backdropClose } from './dialogBackdrop.js';
 import { createTabNotification } from './tabNotification.js';
 import { createMessageTracker, createMessageSound } from './messageSound.js';
 import HistoryPanel from './HistoryPanel.vue';
 import { translations } from './i18n.js';
 
+const props = defineProps({ interfaceLanguage: { type: String, default: '' } });
 const historyPanel = ref(null);
 async function jumpToMessage(index) {
   await nextTick();
@@ -166,14 +174,14 @@ let typingTimer;
 const initializing = ref(true);
 const error = ref('');
 const messages = ref([]);
-const settings = ref({ proactiveEnabled: true, language: 'zh', name: 'Assistant', minMinutes: 10, maxMinutes: 30, quietStart: '23:00', quietEnd: '09:00' });
+const settings = ref({ realityEnabled: false, realityIntensity: 3, proactiveEnabled: true, language: 'zh', name: 'Assistant', minMinutes: 10, maxMinutes: 30, quietStart: '23:00', quietEnd: '09:00' });
 const draft = ref({ ...settings.value });
 const settingsDialog = ref(null);
 const settingsHeading = ref(null);
 const settingsOpen = ref(false);
 const settingsError = ref('');
 const saving = ref(false);
-const language = computed(() => (settingsOpen.value ? draft.value.language : settings.value.language) || 'zh');
+const language = computed(() => props.interfaceLanguage || (settingsOpen.value ? draft.value.language : settings.value.language) || 'zh');
 const t = computed(() => translations[language.value] || translations.zh);
 watchEffect(() => {
   document.title = `${settings.value.name} · EmotionChat`;
@@ -204,25 +212,25 @@ function openSettings() {
   settingsDialog.value.showModal();
   settingsHeading.value?.focus({ preventScroll: true });
 }
-const languageOptions = [{ value: 'zh', label: '中文' }, { value: 'ja', label: '日本語' }, { value: 'en', label: 'English' }];
-async function applyLanguage(value) {
-  if (saving.value || value === settings.value.language) return;
-  const previous = settings.value.language;
-  saving.value = true;
-  settingsError.value = '';
-  settings.value = { ...settings.value, language: value };
-  draft.value.language = value;
-  try {
-    // Save only the language change, preserving other unsaved form edits.
-    const response = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settings.value) });
-    const data = await response.json();
-    if (!response.ok) throw new Error('Save failed');
-    settings.value = data;
-  } catch {
-    settings.value = { ...settings.value, language: previous };
-    draft.value.language = previous;
-    settingsError.value = t.value.saveError;
-  } finally { saving.value = false; }
+const realityText = computed(() => ({
+ zh: {title:'关注现实动态',hint:'根据人物兴趣，了解近期真实消息。',intensity:'探索强度',low:'0 · 按需查询',high:'8 · 广泛探索',note:'联网查询通用兴趣词，不发送私人资料。调整后自动保存。'},
+ ja: {title:'最近の話題を探す',hint:'キャラクターの興味から最近の情報を探します。',intensity:'探索レベル',low:'0 · 必要な時だけ',high:'8 · 幅広く探索',note:'一般的な検索語のみ送信。個人資料は送信せず、自動保存します。'},
+ en: {title:'Follow real-world updates',hint:'Find recent news based on the character’s interests.',intensity:'Exploration level',low:'0 · On demand',high:'8 · Explore broadly',note:'Searches use general interests, not private details. Changes save automatically.'}
+}[language.value]));
+async function saveReality(patch) {
+ if (saving.value) return;
+ saving.value = true; settingsError.value = '';
+ try {
+  const response = await fetch('/api/settings', {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...settings.value,...patch})});
+  const data = await response.json(); if (!response.ok) throw new Error('Save failed');
+  settings.value = data;
+  draft.value.realityEnabled = data.realityEnabled;
+  draft.value.realityIntensity = data.realityIntensity;
+ } catch {
+  draft.value.realityEnabled = settings.value.realityEnabled;
+  draft.value.realityIntensity = settings.value.realityIntensity;
+  settingsError.value = t.value.saveError;
+ } finally { saving.value = false; }
 }
 async function toggleProactive() {
   if (saving.value) return;
@@ -271,7 +279,7 @@ async function scrollToBottom() {
 }
 const trackIncoming = createMessageTracker();
 const messageSound = createMessageSound();
-const tabNotification = createTabNotification(() => settings.value.language);
+const tabNotification = createTabNotification(() => language.value);
 async function loadHistory(background = false) {
   const snapshot = JSON.stringify(messages.value);
   const response = await fetch('/api/history', { cache: 'no-store' });
@@ -286,9 +294,14 @@ async function loadHistory(background = false) {
   messages.value = data.exists ? data.messages : [{ role: 'assistant', content: '我在。你说。' }];
   await scrollToBottom();
 }
+const localEnvironment = createLocalEnvironment();
+watch(() => settings.value.realityEnabled, enabled => { localEnvironment.refresh(Boolean(enabled)); });
+let environmentTimer;
 let historyTimer;
-onUnmounted(() => { tabNotification.dispose(); messageSound.dispose(); clearInterval(historyTimer); clearTimeout(typingTimer); cancelMessagePress(); });
+onUnmounted(() => { localEnvironment.dispose(); clearInterval(environmentTimer); tabNotification.dispose(); messageSound.dispose(); clearInterval(historyTimer); clearTimeout(typingTimer); cancelMessagePress(); });
 onMounted(async () => {
+  localEnvironment.refresh(false);
+  environmentTimer=setInterval(()=>localEnvironment.refresh(Boolean(settings.value.realityEnabled)),25*60*1000);
   messageSound.mount();
   tabNotification.mount();
   historyTimer = setInterval(() => {

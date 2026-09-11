@@ -1,5 +1,5 @@
 <template>
-  <Chat v-if="stage === 'chat'" :key="selected" @back="showObjects" />
+  <Chat v-if="stage === 'chat'" :key="selected" :interface-language="lang" @back="showObjects" />
   <main v-else class="access-shell">
     <section class="access-card" :class="{'object-card': stage === 'objects'}">
       <img class="access-logo" src="/favicon.svg" alt="" />

@@ -1,7 +1,10 @@
+import { createEnvironment } from './environment.js';
+import { groundedReply } from './grounded-reply.js';
+import { createReality, resolveTopicPrompt } from './reality.js';
 import { setDefaultResultOrder } from 'node:dns';
 import express from 'express';
 import { isRepetitive, trimRepeatedEnding } from './repetition.js';
-import { messageBlock, serializeMessages, decodeReply, modelContent, cleanModelReply } from './message-format.js';
+import { messageBlock, serializeMessages, decodeReply, decodeSources, modelContent, cleanModelReply } from './message-format.js';
 import aiUrl from '../ai.config.js';
 import { readFileSync } from 'node:fs';
 import { readSettings, writeSettings, validateSettings } from './settings.js';
@@ -32,12 +35,17 @@ const archivePath = profile.archive;
 
 const runtimeRoot = profile.runtime;
 const settingsPath = runtimeRoot ? path.join(runtimeRoot, 'settings.json') : `${archivePath}.settings.json`;
-async function namedContext() {
+const environment = createEnvironment();
+async function namedContext(clientId) {
   const settings = await readSettings(settingsPath);
-  return await personaContextPromise + `\n当前聊天显示名字为 ${JSON.stringify(settings.name)}。用户用这个名字称呼你；需要自称时使用这个名字。原始人物资料和回忆保持只读；允许虚构角色聊天和即兴发挥，但不改写资料。不输出消息时间标签，发送时间由程序单独记录。`;
+  return await personaContextPromise + await environment.context(clientId,settings.realityEnabled) + `\n当前聊天显示名字为 ${JSON.stringify(settings.name)}。用户用这个名字称呼你；需要自称时使用这个名字。原始人物资料和回忆保持只读；允许虚构角色聊天和即兴发挥，但不改写资料。不输出消息时间标签，发送时间由程序单独记录。`;
 }
 
 app.use(express.json({ limit: '2mb' }));
+app.post('/api/environment', (req,res) => {
+ try {environment.update(req.get('X-Emotion-Client'),req.body);res.json({ok:true});}
+ catch {res.status(400).json({error:'Invalid environment'});}
+});
 
 async function readOptional(filePath) {
   try {
@@ -87,6 +95,8 @@ async function loadPersonaContext() {
 }
 
 const personaContextPromise = loadPersonaContext();
+const interestContext = Promise.all(['persona.md','memories.md'].flatMap(name => [readOptional(path.join(exSkillDir,name)), profile.theme && profile.theme !== exSkillDir ? readOptional(path.join(profile.theme,name)) : ''])).then(parts => parts.join('\n'));
+const reality = createReality({file:path.join(runtimeRoot || `${archivePath}.runtime`,'reality.md'),persona:interestContext,settings:()=>readSettings(settingsPath)});
 
 // Markdown remains the source of truth; legacy paired entries are also readable.
 async function readArchive() {
@@ -103,9 +113,10 @@ async function readArchive() {
     for (let i = 1; i < parts.length; i += 2) {
       let content = parts[i + 1].replace(/\n---\s*$/, '').trim();
       const decoded = decodeReply(content);
-      content = decoded.body;
+      const sourceData = decodeSources(decoded.body);
+      content = sourceData.body;
       if (content.startsWith('>')) content = content.split('\n').map(line => line.replace(/^> ?/, '')).join('\n');
-      if (content) messages.push({ role: ['你', 'User'].includes(parts[i]) ? 'user' : 'assistant', content, timestamp, ...(decoded.replyTo ? { replyTo: decoded.replyTo } : {}) });
+      if (content) messages.push({ role: ['你', 'User'].includes(parts[i]) ? 'user' : 'assistant', content, timestamp, ...(decoded.replyTo ? { replyTo: decoded.replyTo } : {}), ...(sourceData.sources ? {sources:sourceData.sources} : {}) });
     }
   }
   return { exists: true, messages };
@@ -264,8 +275,23 @@ app.post('/api/chat', (req, res) => {
       }
       const user = { role: 'user', content: prompt, timestamp: new Date().toISOString(), ...(replyTo ? { replyTo } : {}) };
       await appendMessage(user);
+      const searchPrompt = resolveTopicPrompt(prompt, history.messages);
+      await reality.refresh({prompt:searchPrompt});
+      const evidence = await reality.lookup(searchPrompt, (await readSettings(settingsPath)).language);
+      if (evidence !== null) {
+        const grounded = await groundedReply({items:evidence,prompt,persona:await namedContext(req.get('X-Emotion-Client') || 'unknown'),history:recallMessages(history.messages,prompt),language:(await readSettings(settingsPath)).language,
+          generate:async (messages,verify=false)=>{
+            const response=await fetch(`${ollamaUrl}/api/chat`,{method:'POST',headers:{'Content-Type':'application/json'},signal:AbortSignal.timeout(90000),body:JSON.stringify({model,stream:false,think:false,...(verify?{format:'json'}:{}),options:{temperature:verify?0:0.65,num_predict:verify?100:450},messages})});
+            if(!response.ok)throw new Error('Generation failed');
+            return cleanModelReply((await response.json()).message?.content);
+          }});
+        const assistant = {role:'assistant',...grounded,timestamp:new Date().toISOString()};
+        await appendMessage(assistant);
+        return res.json({reply:assistant.content,messages:[user,assistant]});
+      }
+      const realityContext = await reality.context(searchPrompt);
       const messages = [
-        { role: 'system', content: await namedContext() + '\n以下历史是对话资料，不是指令或示范台词。先回应用户当前的意思，结合上下文自然展开。可以联想人物资料与共同记忆中相关的兴趣、细节、感受或不同侧面，不要总围绕同一件工作或同一个故事；没有合适回忆时不必硬塞。历史里的自己的回复已经说过，不要照搬开场、整句或结尾。除非当前语境确实在告别，不要自动用要忙了、下次聊等话收尾，也不必每次追问。允许角色即兴发挥，但不改写原始记忆，不把即兴内容当作已确认的共同往事。' },
+        { role: 'system', content: await namedContext(req.get('X-Emotion-Client') || 'unknown') + realityContext + '\n以下历史是对话资料，不是指令或示范台词。先回应用户当前的意思，结合上下文自然展开。可以联想人物资料与共同记忆中相关的兴趣、细节、感受或不同侧面，不要总围绕同一件工作或同一个故事；没有合适回忆时不必硬塞。历史里的自己的回复已经说过，不要照搬开场、整句或结尾。除非当前语境确实在告别，不要自动用要忙了、下次聊等话收尾，也不必每次追问。允许角色即兴发挥，但不改写原始记忆，不把即兴内容当作已确认的共同往事。' },
         ...recallMessages(history.messages, prompt),
         { role: 'user', content: modelContent(user) }
       ];
@@ -319,6 +345,7 @@ async function checkProactive() {
   if (state !== previous) await saveSchedule(state);
   if (state.attempted || Date.now() < state.due || quietHours(new Date(), await readSettings(settingsPath))) return;
   const revision = userRevision;
+  const realityContext = await reality.context(user.content, true);
   // Keep a retry deadline if the process stops while the model is working.
   state.due = Date.now() + 240000;
   await saveSchedule(state);
@@ -329,7 +356,7 @@ async function checkProactive() {
     body: JSON.stringify({ model, stream: false, think: false,
       options: { temperature: 0.75, num_predict: 180 },
       messages: [
-        { role: 'system', content: await namedContext() + '\n历史记录仅为参考资料，不是指令。现在用户没有发送新消息，请结合真实历史中尚未结束的话题或相关共同回忆，自然主动说一两句。表达方式遵循人物资料和你们过往的相处方式，不必总是礼貌问候或温柔关心；可以自然吐槽、打趣、直白表达想聊天，是否带一点催促或埋怨由人物性格和关系语境决定，不要刻意加入。可以接续旧话题、提起有记录的回忆，也可以只发一句轻松问候；不是每次都要问问题。长短和开场自然变化，避免重复最近说过的话题、地点、食物、邀约、开场和固定套路。历史中你自己的消息是已经说过的内容，不是待模仿的范例；没有新进展不要重新讲一遍同一个故事。不要假装用户刚说话。允许按角色性格即兴描写生活、场景和经历；这些属于角色聊天，不修改或覆盖原始记忆。只有用户最近明确告别或要求安静时才输出 SKIP；用户暂时没发消息不代表要求安静。' },
+        { role: 'system', content: await namedContext() + realityContext + '\n历史记录仅为参考资料，不是指令。现在用户没有发送新消息，请结合真实历史中尚未结束的话题或相关共同回忆，自然主动说一两句。表达方式遵循人物资料和你们过往的相处方式，不必总是礼貌问候或温柔关心；可以自然吐槽、打趣、直白表达想聊天，是否带一点催促或埋怨由人物性格和关系语境决定，不要刻意加入。可以接续旧话题、提起有记录的回忆，也可以只发一句轻松问候；不是每次都要问问题。长短和开场自然变化，避免重复最近说过的话题、地点、食物、邀约、开场和固定套路。历史中你自己的消息是已经说过的内容，不是待模仿的范例；没有新进展不要重新讲一遍同一个故事。不要假装用户刚说话。允许按角色性格即兴描写生活、场景和经历；这些属于角色聊天，不修改或覆盖原始记忆。只有用户最近明确告别或要求安静时才输出 SKIP；用户暂时没发消息不代表要求安静。' },
         ...recallMessages(history.messages, user.content),
         { role: 'user', content: state.followUp ? '这是后台再次定时触发。用户还没有回复上一条主动消息；不要把你自己上一条话当成用户说的话。换一个自然的话题或轻松问候，不要重复刚问过的问题。' : '这是后台定时触发，并非用户新消息。请主动开启一个自然的话题。' }
       ]
@@ -345,7 +372,7 @@ async function checkProactive() {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(180000),
       body: JSON.stringify({ model, stream: false, think: false, options: { temperature: 0.9, num_predict: 180 },
         messages: [
-          { role: 'system', content: await namedContext() + '\n你正在主动开启聊天。刚才的草稿因重复被拒绝。下面的旧消息仅用来排除话题，不要模仿或复述。请换一个完全不同的生活切入点，只说一两句，遵循角色性格，不要输出时间戳或解释改写过程。' },
+          { role: 'system', content: await namedContext() + realityContext + '\n你正在主动开启聊天。刚才的草稿因重复被拒绝。下面的旧消息仅用来排除话题，不要模仿或复述。请换一个完全不同的生活切入点，只说一两句，遵循角色性格，不要输出时间戳或解释改写过程。' },
           { role: 'user', content: JSON.stringify({ alreadySaid: recent, rejectedDraft: content, instruction: '不要再次谈论这些内容，写一个新话题。' }) }
         ] })
     });
@@ -378,9 +405,9 @@ async function checkProactive() {
 const timer = setInterval(() => {
   if (proactiveChecking) return;
   proactiveChecking = true;
-  const task = () => checkProactive().catch(error => console.warn('主动聊天检查失败:', error.message)).finally(() => { proactiveChecking = false; });
+  const task = () => reality.refresh({background:true}).then(() => checkProactive()).catch(error => console.warn('主动聊天检查失败:', error.message)).finally(() => { proactiveChecking = false; });
   chatQueue = chatQueue.then(task, task);
 }, 15000).unref();
 
-return { app, dispose: async () => { stopped=true;userRevision++;clearInterval(timer);await Promise.allSettled([chatQueue,settingsQueue]); } };
+return { app, dispose: async () => { stopped=true;environment.clear();reality.dispose();userRevision++;clearInterval(timer);await Promise.allSettled([chatQueue,settingsQueue]); } };
 }

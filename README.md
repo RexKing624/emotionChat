@@ -4,7 +4,25 @@
 
 ## 中文
 
-一个基于 Vue 3、Express 和 Ollama 的本地 AI 聊天应用。导入人物设定与回忆，连接自己的模型，即可聊天。使用本机模型时，资料无需发送给云端模型。
+一个基于 Vue 3、Express 和 Ollama 的本地 AI 聊天应用。导入人物设定与回忆，连接自己的模型，即可聊天。角色不仅回应消息，也会结合共同回忆、最近的对话和自身性格，主动发起新的话题。使用本机模型时，资料无需发送给云端模型。
+
+### 核心体验：角色会主动找你
+
+EmotionChat 会在你停止发消息后，从设定的时间范围内随机选择一个时刻，让角色主动开启对话。内容由 AI 当时生成，可以延续尚未结束的话题、联想共同回忆，也可以按照人物性格轻松问候或换一个切入点。
+
+如果你没有回应，角色会等待更长时间后再次尝试，并避免重复上一条主动消息。每个聊天都有独立的等待范围和安静时段；“安静”可以立即停止主动消息，重新开启后会重新计算时间。新聊天只有在你先发送过一条消息后，才会激活主动对话。
+
+### 可选体验：把现实动态带进聊天
+
+在设置中开启 **“关注现实动态”**（默认关闭），角色可以从人物与回忆资料中匹配兴趣，获取近期资讯并在合适时带入对话。当前支持咖啡、摄影、艺术、音乐、读书、美食甜品、电影、户外和游戏；这是预设关键词匹配，不是任意主题的通用搜索。你明确询问的类别可以超出人物原有兴趣，“新品呢”等追问也会尝试接续前文话题。
+
+- **探索强度 0–8**：0 只按需查询，1–8 逐步增加后台更新频率和每次搜索的类别、素材数量，不改变主动发消息的间隔。开关即时保存，滑块松手后自动保存。
+- **自然表达与来源**：明确查询近期资讯时，默认选一条用人物语气回应，来源折叠在消息下方的“查看来源”。生成后由本地模型核对事实，失败会重试，再失败则回退到简短原文。详细查询可提供多条。当前只获取新闻标题、来源和报道日期，不读取全文；报道日期不等于上市日期，模型核对也不保证完全准确。
+- **自动时间与天气**：每次生成可参考系统当前时间和设备时区。天气随此开关启用，不受探索强度影响：优先浏览器定位，失败后用公网 IP 估算位置；都失败就不提供天气，不需要填写地址，也不使用人物地址兜底。首次可能出现定位授权弹窗；局域网 HTTP 可能无法使用浏览器定位，IP 估算也可能受 VPN 影响。天气最多缓存 30 分钟，位置会过期，只有话题合适时才带入。
+
+**联网范围**：Google News 接收通用兴趣词与匹配城市；IP 定位由用户浏览器访问 ipapi.co，天气由后端用保留两位小数的近似坐标请求 Open-Meteo。这些服务不接收人物原文或聊天全文。开启后会访问外部服务，不能视为完全离线；关闭后仍可正常本地聊天。
+
+资讯单独保存在 `runtime/聊天ID/reality.md`，带获取时间、来源和使用标记，不改写 `emotion/`。位置与天气只暂存在内存，不作为定位记录写入文件；角色实际说出的天气内容会随聊天保存。普通查询的来源元数据保存在聊天 MD 中，重新打开后仍能查看。搜索失败或缺少相关资料时，不保证能回答新品细节。
 
 ### 连接 AI 模型
 
@@ -63,7 +81,7 @@ chats/
   聊天名字.md
 runtime/
   chat-index.json
-  …各聊天的设置、主动计划和备份
+  …各聊天的设置、主动计划、资讯 reality.md 和备份
 ```
 
 也可以把 SKILL.md、persona.md、memories.md 直接放在回忆子目录。可选加载 meta.json、conversations.md 和指定的 knowledge/chats/ig_screenshots_summary.md。原始图片、PDF、聊天导出需要先整理成 Markdown；不会递归解析全部素材。修改已有回忆后重启后端，新增回忆文件夹后重新打开“新建聊天”即可。
@@ -89,7 +107,7 @@ runtime/
 
 ### 设置与隐私
 
-- 可调整名字、界面语言、主动聊天间隔和安静时段。界面语言不会强制改变对话语言。
+- 在聊天选择页切换界面语言；设置中可调整名字、现实动态、主动聊天间隔和安静时段。界面语言不会强制改变对话语言。
 - 主动消息按最短至最长时间随机等待；未回复时，下次范围为“最短×2+2”至最长分钟，上界不足时采用计算后的最短值。安静时段按日本时间，开始结束相同表示关闭。尚未发送第一条消息的聊天不会主动发言。
 - 点击“安静”立即关闭主动聊天，重新开启时重新计算等待时间。打开过的聊天可在后台继续按自己的计划运行。
 - 每条消息带时间戳，显示格式 `01/Apr/2026,03:24`，使用设备本地时间。支持引用回复、记录查询和手机长按操作。
@@ -100,11 +118,29 @@ runtime/
 
 可选配置：`OLLAMA_MODEL`（模型名）、`MEMORIES_DIR`（默认 ./emotion）、`CHAT_RECORDS_DIR`（默认 ./chats）、`PORT`（默认3000）；环境变量优先。模型服务地址只读取 ai.config.js。旧版目录不会自动转换，升级前请备份资料。
 
-验证：`npm run build`；后端测试：`node --test server/access.test.js`。
+验证：`npm run build`；后端测试：`node --test server/*.test.js`。
 
 ## 日本語
 
-Vue 3、Express、Ollama を使うローカルAIチャットです。人物設定と記憶を読み込み、自分のモデルに接続します。端末内のモデルなら、資料をクラウドAIへ送る必要はありません。
+Vue 3、Express、Ollama を使うローカルAIチャットです。人物設定と記憶を読み込み、自分のモデルに接続します。キャラクターは返信するだけでなく、共有した記憶、最近の会話、人物らしい性格をもとに、自分から新しい話題を始めます。端末内のモデルなら、資料をクラウドAIへ送る必要はありません。
+
+### 中心となる体験：キャラクターから話しかける
+
+メッセージを送らなくなったあと、設定した範囲からランダムな時刻を選び、AIがその場で会話を始めます。終わっていない話題を続けたり、共有した記憶を思い出したり、人物らしい軽い挨拶や別の話題を送ったりできます。
+
+返事がない場合は、前回より長く待ってから別のメッセージを試し、直前の内容を繰り返さないようにします。待ち時間とおやすみ時間はチャットごとに独立しています。「おやすみ」で自発メッセージを止め、再開すると待ち時間を計算し直します。新しいチャットは、ユーザーが最初のメッセージを送ったあとに自発会話が有効になります。
+
+### 任意機能：最近の話題を会話に取り入れる
+
+設定の **「最近の話題を探す」** は既定でオフです。有効にすると人物・記憶資料のキーワードから興味を拾い、最近の記事を会話の材料にします。対応分野はコーヒー、写真、アート、音楽、読書、グルメ・スイーツ、映画、アウトドア、ゲームです。任意のテーマを検索する汎用検索ではありません。ユーザーが尋ねた分野も検索でき、「新作は？」などは直前の話題を引き継ぐようにします。
+
+- **探索レベル 0–8**：0 は必要なときだけ検索し、1–8 はバックグラウンド更新の頻度と分野・記事数を増やします。自発メッセージの間隔とは別です。スイッチは即時、スライダーは操作終了時に自動保存します。
+- **話し方と出典**：最近の情報を明示的に尋ねた場合、通常は1件をキャラクターの口調で伝え、出典は「出典を見る」に折りたたみます。ローカルモデルで事実確認し、不合格なら再生成、それでも失敗したら短い原文に戻します。詳細な質問では複数件を扱えます。取得するのは見出し・出典・記事公開日だけで、全文は読みません。公開日と商品発売日は異なり、モデルによる確認も完全ではありません。
+- **時刻と天気**：生成時にはシステム時刻と端末のタイムゾーンを参照できます。天気はこのスイッチに連動し、探索レベルには依存しません。ブラウザの位置情報を優先し、取得できなければ公開 IP から推定します。両方失敗したら天気は使わず、住所入力も人物の住所への切り替えも行いません。初回は位置情報の許可が出る場合があります。LAN の HTTP では位置情報が使えないことがあり、IP 推定は VPN の影響を受けます。天気は最大30分キャッシュし、位置情報も期限切れになります。
+
+**外部通信**：Google News には一般的な興味の検索語と都市名を送ります。ユーザーのブラウザが ipapi.co にアクセスし、バックエンドが小数点以下2桁の概略座標で Open-Meteo を利用します。人物資料や会話全文は送りません。有効時は完全オフラインではなく、無効でもローカルチャットは利用できます。
+
+記事は `runtime/チャットID/reality.md` に取得時刻・出典・利用マーク付きで保存し、`emotion/` は変更しません。位置と天気はメモリ内のみで保持しますが、返信として話した天気はチャット履歴に残ります。通常の検索返信の出典はチャット MD に保存され、再表示できます。検索失敗や資料不足の場合、新商品の詳細を確認できないことがあります。
 
 ### AI モデルに接続
 
@@ -170,7 +206,7 @@ npm run dev
 
 ### 設定と保護
 
-表示名、画面言語、自発メッセージ間隔、おやすみ時間を調整できます。最初の送信前は自発メッセージを送りません。返答がない場合は「最短×2+2」分から最長分の範囲で再度待機し、上限が小さければ計算後の下限を使用します。おやすみ時間は日本時間です。開いたチャットはバックエンド稼働中に自発メッセージを続けられます。
+画面言語はチャット選択画面で切り替えます。設定では表示名、最近の話題、自発メッセージ間隔、おやすみ時間を調整できます。最初の送信前は自発メッセージを送りません。返答がない場合は「最短×2+2」分から最長分の範囲で再度待機し、上限が小さければ計算後の下限を使用します。おやすみ時間は日本時間です。開いたチャットはバックエンド稼働中に自発メッセージを続けられます。
 
 日時、引用返信、履歴検索、確認付き削除、モバイル長押しに対応します。バックグラウンドの新着はタブに未読数と赤い印を表示します。音はブラウザ操作後に利用可能で、ロック画面やバックグラウンドでは遅れる場合があります。システムプッシュ通知はありません。
 
@@ -180,11 +216,29 @@ npm run dev
 
 設定は OLLAMA_MODEL、MEMORIES_DIR（./emotion）、CHAT_RECORDS_DIR（./chats）、PORT（3000）。環境変数が優先され、モデルURLは ai.config.js のみです。旧形式は自動移行しません。更新前にバックアップしてください。
 
-検証：`npm run build`、`node --test server/access.test.js`。
+検証：`npm run build`、`node --test server/*.test.js`。
 
 ## English
 
-A local AI chat app built with Vue 3, Express and Ollama. Import personas and memories and connect your own model. With an on-device model, private material need not be sent to a cloud AI service.
+A local AI chat app built with Vue 3, Express and Ollama. Import personas and memories and connect your own model. Characters do more than reply: they use shared memories, recent conversation and their own personality to start new topics on their own. With an on-device model, private material need not be sent to a cloud AI service.
+
+### Core experience: characters start conversations
+
+After you stop sending messages, EmotionChat chooses a random time within your configured range and asks the AI to begin a conversation. It may continue an unfinished topic, recall a related shared memory, offer a light greeting in character, or approach you from a different angle.
+
+If you do not respond, the character waits longer before trying again and avoids repeating the previous proactive message. Each chat has its own timing and quiet hours. Quiet mode stops proactive messages immediately; turning it off calculates a new wait. A new chat activates proactive conversation only after you send its first message.
+
+### Optional: bring real-world updates into the conversation
+
+Enable **Follow real-world updates** in settings (off by default). The app matches interests in persona and memory files to recent news. Supported categories are coffee, photography, art, music, books, food and desserts, film, outdoors and games. This uses predefined keywords, not unrestricted general search. Direct questions may introduce other supported interests, and short follow-ups such as “any new releases?” try to inherit the recent topic.
+
+- **Exploration level 0–8**: 0 searches only on demand; 1–8 increase background refresh frequency and the number of categories and articles fetched. This does not change proactive message timing. The switch saves immediately; the slider saves when released.
+- **In-character replies and sources**: explicit news requests normally use one article and show a collapsed “View sources” section. A local-model fact check retries unsupported drafts, then falls back to a short original excerpt if needed. Detailed requests may use several articles. Only headlines, sources and publication dates are retrieved, not full articles. Publication dates are not product release dates, and model-based checks are not infallible.
+- **Automatic time and weather**: generation can use the system clock and device timezone. Weather follows this switch, independently of exploration level. Browser geolocation is tried first, then public-IP estimation. If both fail, weather is omitted; no address entry or persona-location fallback is used. A location permission prompt may appear. LAN HTTP can prevent browser geolocation, and VPNs can affect IP estimates. Weather is cached for up to 30 minutes; location also expires. It is used only when relevant to the conversation.
+
+**External services**: Google News receives general interest keywords and a matched city. The user's browser contacts ipapi.co; the backend queries Open-Meteo with approximate coordinates rounded to two decimal places. Persona files and full conversations are not sent to these services. Enabling this feature means the app is no longer entirely offline; local chat still works with it disabled.
+
+Articles, fetch times, sources and usage markers live separately in `runtime/chat-ID/reality.md`; `emotion/` stays unchanged. Location and weather are held only in memory, although weather mentioned in a reply becomes part of chat history. Sources for explicit lookup replies are stored in chat Markdown and survive reopening. Failed searches or insufficient evidence may leave product details unanswered.
 
 ### Connect an AI model
 
@@ -251,7 +305,7 @@ No model is bundled. The app uses the Ollama API, not arbitrary chat websites or
 
 ### Settings and privacy
 
-Adjust display name, interface language, proactive timing and quiet hours. Proactive messages start only after the first user message. Unanswered follow-ups wait between minimum×2+2 minutes and the maximum, raising the upper bound if necessary. Quiet hours use Japan time. Opened chats may continue proactive messages while the backend runs.
+Change interface language on the chat picker. Settings control display name, real-world updates, proactive timing and quiet hours. Proactive messages start only after the first user message. Unanswered follow-ups wait between minimum×2+2 minutes and the maximum, raising the upper bound if necessary. Quiet hours use Japan time. Opened chats may continue proactive messages while the backend runs.
 
 Supports timestamps, quoted replies, history search, confirmed deletion and mobile long-press actions. Background arrivals update the tab's unread count and dot; audio needs a browser interaction to unlock. Background throttling or phone lock screens can delay alerts; system push is not provided.
 
@@ -261,7 +315,7 @@ Only a salted scrypt hash is stored in auth.config.json, beside ai.config.js. Fi
 
 Optional settings: OLLAMA_MODEL, MEMORIES_DIR (./emotion), CHAT_RECORDS_DIR (./chats), PORT (3000). Environment variables take precedence. The model URL comes only from ai.config.js. Legacy layouts are not migrated automatically; back up before upgrading.
 
-Validation: `npm run build`; backend tests: `node --test server/access.test.js`.
+Validation: `npm run build`; backend tests: `node --test server/*.test.js`.
 
 
 Mika_Demo contains 1200 fictional, programmatically organized reference messages across 50 scenarios. It is synthetic format/example data, not a real conversation export.
