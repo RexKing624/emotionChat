@@ -2,7 +2,7 @@ export function nextSchedule(previous, user, now = Date.now(), random = Math.ran
   if (!user) return null;
   const key = `${user.timestamp}:${user.content}`;
   const timing = `${settings.minMinutes}:${settings.maxMinutes}`;
-  if (previous?.key === key && (previous.attempted || previous.timing === timing)) return previous;
+  if (previous?.key === key && previous.timing === timing) return previous;
   return { key, timing, due: Math.max(Date.parse(user.timestamp), now) + (settings.minMinutes + random() * (settings.maxMinutes - settings.minMinutes)) * 60000, attempted: false };
 }
 export function quietHours(now = new Date(), settings = { quietStart: '23:00', quietEnd: '09:00' }) {

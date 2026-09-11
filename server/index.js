@@ -215,10 +215,11 @@ async function checkProactive() {
   if (!state) return;
   if (state !== previous) await saveSchedule(state);
   if (state.attempted || Date.now() < state.due || quietHours(new Date(), await readSettings(settingsPath))) return;
-  // Persist before generating: a restart cannot send a second unsolicited message.
-  state.attempted = true;
-  await saveSchedule(state);
   const revision = userRevision;
+  // Keep a retry deadline if the process stops while the model is working.
+  state.due = Date.now() + 240000;
+  await saveSchedule(state);
+  try {
   const response = await fetch(`${ollamaUrl}/api/chat`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     signal: AbortSignal.timeout(180000),
@@ -234,8 +235,21 @@ async function checkProactive() {
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || `Ollama ${response.status}`);
   const content = data.message?.content?.trim();
-  if (!content || content === 'SKIP' || userRevision !== revision || quietHours(new Date(), await readSettings(settingsPath))) return;
-  await appendMessage({ role: 'assistant', content, timestamp: new Date().toISOString() });
+  if (!content) throw new Error('Empty proactive response');
+  if (userRevision !== revision || quietHours(new Date(), await readSettings(settingsPath))) return;
+  if (content !== 'SKIP') {
+    await appendMessage({ role: 'assistant', content, timestamp: new Date().toISOString() });
+  }
+  state.attempted = true;
+  state.outcome = content === 'SKIP' ? 'skipped' : 'sent';
+  await saveSchedule(state);
+  } catch (error) {
+    state.attempted = false;
+    state.outcome = 'retrying';
+    state.due = Date.now() + 60000;
+    await saveSchedule(state);
+    throw error;
+  }
 }
 setInterval(() => {
   if (proactiveChecking) return;
