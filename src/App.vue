@@ -47,9 +47,10 @@
       </form>
     </section>
     <HistoryPanel ref="historyPanel" :messages="messages" :name="settings.name" :t="t" :language="language" :loading="loading" @changed="loadHistory()" @jump="jumpToMessage" />
-    <dialog ref="settingsDialog" class="settings-dialog" @close="settingsOpen = false">
+    <dialog ref="settingsDialog" class="settings-dialog" @pointerdown="backdropStart" @click="backdropClose($event, saving)" @close="settingsOpen = false">
       <form @submit.prevent="saveSettings" class="settings-form">
         <div class="settings-title"><h2>{{ t.settings }}</h2><span class="model-status" :class="modelHealth.status" role="status">{{ modelHealth.model }} · {{ t[modelHealth.status] }}</span></div>
+        <div class="settings-fields">
         <label>{{ t.name }}<input v-model="draft.name" maxlength="40" required /></label>
         <fieldset><legend>{{ t.language }}</legend>
           <div class="language-buttons" role="group" :aria-label="t.language">
@@ -72,6 +73,7 @@
           <p>{{ t.quietHint }}</p>
         </fieldset>
         <p v-if="settingsError" class="settings-error" role="alert">{{ settingsError }}</p>
+        </div>
         <div class="settings-actions">
           <button type="button" class="secondary" @click="settingsDialog.close()" :disabled="saving">{{ t.cancel }}</button>
           <button type="submit" :disabled="saving">{{ saving ? t.saving : t.save }}</button>
@@ -83,6 +85,7 @@
 
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref, watchEffect } from 'vue';
+import { backdropStart, backdropClose } from './dialogBackdrop.js';
 import HistoryPanel from './HistoryPanel.vue';
 import { translations } from './i18n.js';
 

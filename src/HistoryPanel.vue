@@ -1,13 +1,17 @@
 <template>
-  <dialog ref="dialog" class="history-dialog">
+  <dialog ref="dialog" class="history-dialog" @pointerdown="backdropStart" @click="backdropClose($event, busy)">
     <header class="history-header"><h2>{{ t.historyTitle }}</h2><button type="button" @click="dialog.close()" :aria-label="t.close">×</button></header>
+    <div class="history-calendar">
     <div class="calendar-nav"><button @click="moveMonth(-1)" :aria-label="t.previousMonth">‹</button><strong>{{ monthLabel }}</strong><button @click="moveMonth(1)" :aria-label="t.nextMonth">›</button></div>
     <div class="calendar-grid">
       <span v-for="day in weekdays" :key="day" class="weekday">{{ day }}</span>
       <span v-for="n in offset" :key="'blank'+n"></span>
       <button v-for="day in days" :key="day" :disabled="!available.has(dayKey(day))" :class="{ chosen: selected === dayKey(day), today: dayKey(day) === today }" @click="selectDay(day)">{{ day }}</button>
+      <span v-for="n in 42 - offset - days" :key="'tail'+n"></span>
     </div>
     <div class="history-filter"><span>{{ selected || t.allDates }}</span><button @click="selected = ''; confirmClear = false">{{ t.allDates }}</button></div>
+    </div>
+    <div class="history-content">
     <input class="history-search" type="search" v-model="query" :placeholder="t.searchHistory" :aria-label="t.searchHistory" />
     <p class="history-count">{{ t.resultCount.replace('{count}', filtered.length) }}</p>
     <div class="history-results">
@@ -18,6 +22,7 @@
       <p v-if="!filtered.length">{{ t.noResults }}</p>
     </div>
     <p v-if="error" role="alert" class="settings-error">{{ error }}</p>
+    </div>
     <footer class="history-cleanup">
       <p v-if="confirmClear">{{ t.clearConfirm }}</p>
       <button class="clear-history" :disabled="busy || loading || !records.length" @click="confirmClear ? clearHistory() : confirmClear = true">{{ confirmClear ? t.confirmClear : t.clearHistory }}</button>
@@ -28,6 +33,7 @@
 </template>
 <script setup>
 import { computed, ref } from 'vue';
+import { backdropStart, backdropClose } from './dialogBackdrop.js';
 const props = defineProps({ messages: Array, name: String, t: Object, language: String, loading: Boolean });
 const emit = defineEmits(['jump', 'changed']);
 const dialog = ref(null), query = ref(''), selected = ref(''), confirmClear = ref(false), busy = ref(false), error = ref(''), canRestore = ref(false);

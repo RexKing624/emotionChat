@@ -279,3 +279,60 @@ button:disabled {
 .history-result-row { display: flex; align-items: flex-start; gap: 10px; border-bottom: 1px solid #edf0f2; }
 .history-result-row .history-result { flex: 1; min-width: 0; border-bottom: 0; }
 .history-result-row .delete-message { flex-shrink: 0; min-width: 0; width: auto; height: 28px; padding: 0 8px; margin-top: 10px; align-self: flex-start; background: #fff0f0; color: #bb3939; font-size: 11px; }
+
+/* Keep the page and modal frames stable; only their content panes scroll. */
+html, body, #app { height: 100%; overflow: hidden; }
+.shell { height: 100dvh; min-height: 0; overflow: hidden; }
+.chat { min-height: 0; max-height: 100%; }
+body:has(dialog[open]) { overflow: hidden; }
+.settings-dialog, .history-dialog { overflow: hidden; max-width: calc(100vw - 24px); max-height: calc(100dvh - 24px); margin: auto; padding: clamp(12px, 2vw, 22px); }
+.settings-dialog { width: 480px; }
+.settings-form { max-height: calc(100dvh - 70px); grid-template-rows: auto minmax(0, 1fr) auto; gap: 12px; overflow: hidden; }
+.settings-fields { min-height: 0; display: grid; gap: 12px; overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+.settings-fields > p { margin: -6px 0 0; }
+.settings-form label { gap: 4px; }
+.settings-form input { padding: 8px; min-height: 36px; }
+.settings-form p { margin-bottom: 4px; }
+.settings-form legend { margin-bottom: 6px; }
+.settings-form .settings-actions { flex-shrink: 0; }
+.settings-title h2 { flex-shrink: 0; }
+.model-status { min-width: 0; }
+.history-dialog[open] { display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; gap: 8px; height: min(800px, calc(100dvh - 24px)); }
+.history-calendar { min-width: 0; }
+.calendar-nav { margin: 2px 0 4px; }
+.calendar-grid { grid-template-rows: 26px repeat(6, clamp(22px, 4.4dvh, 36px)); gap: 2px; }
+.calendar-grid button { width: min(100%, 36px); height: 100%; max-height: 36px; font-size: 14px; }
+.weekday { padding: 3px 0; }
+.history-filter { margin: 6px 0 0; }
+.history-content { display: flex; flex-direction: column; min-height: 0; min-width: 0; gap: 6px; overflow: hidden; }
+.history-search { min-width: 0; padding: 9px 10px; flex-shrink: 0; }
+.history-count { margin: 0; flex-shrink: 0; }
+.history-results { min-height: 0; max-height: none; flex: 1; overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+.history-result-row { display: grid; grid-template-columns: minmax(0, 1fr) 62px; gap: 8px; }
+.history-result-row .delete-message { width: 62px; min-width: 62px; margin: 10px 0 0; }
+.history-result span { flex-wrap: wrap; gap: 3px 8px; }
+.history-result strong { overflow-wrap: anywhere; }
+.history-result time { margin-left: auto; text-align: right; }
+.history-cleanup { margin: 0; padding-top: 8px; gap: 6px; }
+.history-cleanup p { margin: 0 0 4px; }
+.history-cleanup button { max-width: 100%; }
+@media (max-width: 420px) {
+  .settings-fields { gap: 9px; }
+  .settings-form { gap: 10px; }
+  .settings-form label { font-size: 12px; }
+  .settings-form p { font-size: 11px; }
+  .settings-row { gap: 8px; }
+  .settings-actions button { height: 40px; }
+  .language-buttons button { height: 36px; }
+  .history-dialog { padding: 12px; }
+}
+@media (max-height: 560px) and (min-width: 600px) {
+  .history-dialog { width: 820px; }
+  .history-dialog[open] { grid-template-columns: minmax(220px, 1fr) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; gap: 8px 16px; }
+  .history-header, .history-cleanup { grid-column: 1 / -1; }
+  .history-calendar { grid-column: 1; grid-row: 2; }
+  .history-content { grid-column: 2; grid-row: 2; }
+  .settings-dialog { width: 760px; }
+  .settings-fields { grid-template-columns: 1fr 1fr; align-items: start; gap: 10px 18px; }
+  .settings-fields > p { grid-column: 2; }
+}
