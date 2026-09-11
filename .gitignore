@@ -13,3 +13,12 @@ pnpm-debug.log*
 .DS_Store
 outputs/
 work/
+
+# Private runtime data
+archive/*
+!archive/.gitkeep
+persona/
+local.config.json
+
+Emotion/imports/*
+!Emotion/imports/.gitkeep

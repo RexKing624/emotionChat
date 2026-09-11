@@ -94,8 +94,8 @@ h1 {
 
 .message.user {
   margin-left: auto;
-  background: #1f6feb;
-  color: #ffffff;
+  background: #dceaff;
+  color: #182026;
 }
 
 .message.assistant {
@@ -108,7 +108,7 @@ h1 {
   margin-bottom: 4px;
   font-size: 12px;
   font-weight: 800;
-  opacity: 0.76;
+  color: #182026;
 }
 
 .message p {
@@ -194,3 +194,37 @@ button:disabled {
     width: 100%;
   }
 }
+
+.message-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 18px; margin-bottom: 4px; white-space: normal; }
+.message-heading .role { margin-bottom: 0; flex-shrink: 0; }
+.message time { margin-left: auto; font-size: 11px; font-weight: 400; color: #75818d; white-space: nowrap; text-align: right; }
+.messages { min-height: 0; overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  .chat { height: 100dvh; min-height: 0; }
+  .status { font-size: 11px; }
+  .composer { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+  textarea { font-size: 16px; }
+}
+
+.settings-toggle { align-self: center; min-width: 42px; width: 42px; height: 42px; background: transparent; color: #182026; font-size: 27px; }
+.settings-dialog { width: min(440px, calc(100vw - 28px)); max-height: calc(100dvh - 40px); overflow: auto; padding: 24px; border: 1px solid #dce3e8; border-radius: 16px; color: #182026; box-shadow: 0 20px 80px #18202633; }
+.settings-dialog::backdrop { background: #18202666; }
+.settings-form { display: grid; gap: 20px; }
+.settings-form h2 { margin: 0; font-size: 22px; }
+.settings-form label { display: grid; gap: 6px; font-size: 14px; font-weight: 600; min-width: 0; }
+.settings-form input { width: 100%; min-width: 0; padding: 10px; border: 1px solid #cbd5dd; border-radius: 7px; font: inherit; font-size: 16px; background: white; color: #182026; }
+.settings-form fieldset { padding: 0; margin: 0; border: 0; min-width: 0; }
+.settings-form legend { font-weight: 700; margin-bottom: 8px; }
+.settings-form p { margin: 4px 0 10px; font-size: 12px; color: #74808b; }
+.settings-row, .settings-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.settings-actions button { width: 100%; }
+.settings-actions .secondary { background: #edf1f4; color: #36434e; }
+.settings-form .settings-error { color: #a33a2a; }
+
+.settings-form select { width: 100%; padding: 10px; border: 1px solid #cbd5dd; border-radius: 7px; font: inherit; font-size: 16px; background: white; color: #182026; }
+.eyebrow { text-transform: none; }
+
+.settings-title { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.model-status { font-size: 11px; color: #75818d; text-align: right; overflow-wrap: anywhere; }
+.model-status.ready { color: #23755b; }
+.model-status.offline, .model-status.missing { color: #a15a32; }

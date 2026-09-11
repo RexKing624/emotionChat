@@ -1,0 +1,6 @@
+{
+  "OLLAMA_URL": "http://127.0.0.1:11434",
+  "OLLAMA_MODEL": "qwen3.5:9b",
+  "EXSKILL_DIR": "./Emotion/skill/emotionchat",
+  "CHAT_ARCHIVE_PATH": "./archive/chat.md"
+}
