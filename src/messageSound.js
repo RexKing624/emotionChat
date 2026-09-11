@@ -3,12 +3,12 @@ export function createMessageTracker(startedAt = Date.now()) {
   let initialized = false;
   let latest = startedAt;
   return messages => {
-    let arrived = false;
+    let arrived = 0;
     for (const message of messages) {
       if (message.role !== 'assistant' || !message.timestamp) continue;
       const stamp = Date.parse(message.timestamp);
       const key = `${message.timestamp}:${message.content}`;
-      if (initialized && !seen.has(key) && stamp > latest) arrived = true;
+      if (initialized && !seen.has(key) && stamp > latest) arrived += 1;
       seen.add(key);
     }
     for (const message of messages) {

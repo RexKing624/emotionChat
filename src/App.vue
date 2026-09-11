@@ -100,6 +100,7 @@
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref, watchEffect } from 'vue';
 import { backdropStart, backdropClose } from './dialogBackdrop.js';
+import { createTabNotification } from './tabNotification.js';
 import { createMessageTracker, createMessageSound } from './messageSound.js';
 import HistoryPanel from './HistoryPanel.vue';
 import { translations } from './i18n.js';
@@ -265,6 +266,7 @@ async function scrollToBottom() {
 }
 const trackIncoming = createMessageTracker();
 const messageSound = createMessageSound();
+const tabNotification = createTabNotification(() => settings.value.language);
 async function loadHistory(background = false) {
   const snapshot = JSON.stringify(messages.value);
   const response = await fetch('/api/history', { cache: 'no-store' });
@@ -272,15 +274,17 @@ async function loadHistory(background = false) {
   if (!response.ok) throw new Error(t.value.historyError);
   if (background && (loading.value || snapshot !== JSON.stringify(messages.value))) return;
   if (data.settings && !saving.value) settings.value = data.settings;
-  if (trackIncoming(data.messages || [])) messageSound.play();
+  const incoming = trackIncoming(data.messages || []);
+  if (incoming) { messageSound.play(); tabNotification.receive(incoming); }
   if (background && JSON.stringify(data.messages) === snapshot) return;
   messages.value = data.exists ? data.messages : [{ role: 'assistant', content: '我在。你说。' }];
   await scrollToBottom();
 }
 let historyTimer;
-onUnmounted(() => { messageSound.dispose(); clearInterval(historyTimer); clearTimeout(typingTimer); cancelMessagePress(); });
+onUnmounted(() => { tabNotification.dispose(); messageSound.dispose(); clearInterval(historyTimer); clearTimeout(typingTimer); cancelMessagePress(); });
 onMounted(async () => {
   messageSound.mount();
+  tabNotification.mount();
   historyTimer = setInterval(() => {
     if (settingsOpen.value) refreshModelHealth();
     if (!loading.value && !initializing.value) loadHistory(true).catch(() => {});

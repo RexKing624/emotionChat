@@ -6,6 +6,8 @@
 
 ## 中文
 
+标签页使用渐变图标；后台收到新消息时显示未读数量与红点，返回页面后清除。
+
 本地 Ollama + Express + Vue 3 聊天应用。支持人物资料、Markdown 历史、相关回忆检索、主动聊天，以及中文、日文、英文界面。
 
 ### AI 模型来自哪里？地址在哪里填写？
@@ -27,7 +29,7 @@ export default 'http://127.0.0.1:11434';
 
 ### 两步开始：导入回忆主题，连接模型
 
-1. 将一个回忆主题放进 `Emotion/`。可以使用 exskill 蒸馏，也可以用其他工具或自己整理，按下方文件结构放入 Markdown 文本。
+1. 将一个回忆主题放进 `Emotion/`。可以使用 [ex-skill](https://github.com/perkfly/ex-skill) 蒸馏，也可以用其他工具或自己整理，按下方文件结构放入 Markdown 文本。
 2. 复制 `local.config.example.json` 为 `local.config.json`，在 `ai.config.js` 填写地址，并按需配置 `OLLAMA_MODEL`，执行下方启动命令即可聊天。
 
 ```text
@@ -41,7 +43,7 @@ Emotion/
 archive/                 新对话自动保存到 chat.md
 ```
 
-把蒸馏结果替换进模板即可，不需要修改代码。已有 exskill 中的 `memories.md` 可以放进 `Emotion/memories.md`，`SKILL.md` 和 `persona.md` 放进 skill 目录。原始微信导出、图片、PDF 等需先用其他工具整理成 Markdown；仅放进 imports 不会自动解析。修改资料后重启后端。
+把蒸馏结果替换进模板即可，不需要修改代码。已有 [ex-skill](https://github.com/perkfly/ex-skill) 中的 `memories.md` 可以放进 `Emotion/memories.md`，`SKILL.md` 和 `persona.md` 放进 skill 目录。原始微信导出、图片、PDF 等需先用其他工具整理成 Markdown；仅放进 imports 不会自动解析。修改资料后重启后端。
 
 `Emotion/conversations.md` 用于模型回忆，不会自动显示为网页聊天气泡。网页显示的是 `archive/chat.md` 中由应用记录的对话。导入的 memories 和 conversations 各读取前 24000 字符，长资料请先蒸馏精简。
 
@@ -77,7 +79,7 @@ npm run dev
 - 设置中修改显示名字、界面语言、主动聊天等待范围和安静时段。界面语言不会修改对话语言。
 - 设置标题右侧显示当前配置模型的可用、未安装或离线状态；可用表示服务可达且模型已安装，不代表正在生成。
 - 每条消息保存时间戳，网页恢复 Markdown 历史。日期显示为 `01/Apr/2026,03:24`，按设备本地时间。
-- 回忆参考最近 20 条和关键词匹配的最多 6 条较早记录，每条上下文（含引用）最多 8000 字符；不是完整语义搜索。
+- 回忆参考最近 20 条和关键词匹配的最多 6 条较早记录，每条上下文（含引用）最多 8000 字符；不是完整语义搜索。此限制仅针对聊天存档，人物设定与 Emotion/ 中的指定回忆文件另外加载，不会递归搜索所有素材文件。
 - 默认随机等待 10–30 分钟主动找话题，日本时间 23:00–09:00 安静。没有合适话题会跳过，未回应时，后续按“最短 × 2 + 2”到最长分钟随机等待再发，下限超过上限时按下限等待。时间相同表示关闭安静时段。
 - 网页每 5 秒获取历史；手机锁屏不提供系统通知。
 
@@ -96,6 +98,8 @@ npm run dev
 <a id="japanese"></a>
 
 ## 日本語
+
+タブにはグラデーションのアイコンを表示します。バックグラウンドで新着メッセージを受け取ると未読数と赤い印が付き、ページに戻ると消えます。
 
 Ollama・Express・Vue 3 を使ったローカルチャットアプリです。人物設定、Markdown の履歴、キーワードによる記憶の検索、自発的なメッセージ、中国語・日本語・英語の画面表示に対応します。
 
@@ -118,7 +122,7 @@ export default 'http://127.0.0.1:11434';
 
 ### 2ステップ：記憶テーマを取り込み、モデルに接続
 
-1. 1つの記憶テーマを `Emotion/` に配置します。exskill、別のツール、または手作業で整理した Markdown を使えます。
+1. 1つの記憶テーマを `Emotion/` に配置します。[ex-skill](https://github.com/perkfly/ex-skill)、別のツール、または手作業で整理した Markdown を使えます。
 2. `local.config.example.json` を `local.config.json` にコピーし、`ai.config.js` の接続先と必要に応じて `OLLAMA_MODEL` を設定して、以下の起動コマンドを実行します。
 
 ```text
@@ -132,7 +136,7 @@ Emotion/
 archive/                 新しい会話は chat.md に自動保存
 ```
 
-テンプレートを自分の資料に置き換えるだけで、コード変更は不要です。既存 exskill の memories.md は Emotion/ に、SKILL.md と persona.md は skill フォルダーに配置してください。チャットの生データ、画像、PDF は別のツールで Markdown に整理する必要があります。資料を変更したら再起動してください。
+テンプレートを自分の資料に置き換えるだけで、コード変更は不要です。既存 [ex-skill](https://github.com/perkfly/ex-skill) の memories.md は Emotion/ に、SKILL.md と persona.md は skill フォルダーに配置してください。チャットの生データ、画像、PDF は別のツールで Markdown に整理する必要があります。資料を変更したら再起動してください。
 
 取り込んだ会話はモデルの参考資料であり、画面の吹き出しにはなりません。画面には archive/chat.md の履歴が表示されます。取り込む memories と conversations は各先頭24000文字までなので、長い資料は先に要約してください。
 
@@ -168,7 +172,7 @@ npm run dev
 - 設定で相手の名前、表示言語、自発的な会話までの待ち時間、おやすみ時間を変更できます。表示言語は会話の言語に影響しません。
 - 設定タイトルの右側に、モデルの利用可能・未インストール・オフライン状態を表示します。利用可能は接続とインストールを確認した状態で、生成中という意味ではありません。
 - 日時付きメッセージを Markdown から復元します。日時は端末の現地時間で `01/Apr/2026,03:24` の形式です。
-- 直近20件とキーワードが一致する過去の最大6件を参照します。引用を含めて1件につき最大8000文字で、意味検索ではありません。
+- 直近20件とキーワードが一致する過去の最大6件を参照します。引用を含めて1件につき最大8000文字で、意味検索ではありません。この件数制限は会話履歴のみで、人物設定と Emotion/ 内の指定された記憶ファイルは別途読み込みます。全素材の再帰検索は行いません。
 - 既定の待ち時間は10〜30分、日本時間23:00〜09:00はおやすみ時間です。話題がなければ送信せず、返事がなければ「最短×2＋2」〜最長分待って再度送信します（下限が上限を超える場合は下限を使用）。開始・終了が同じならおやすみ時間は無効です。
 - 画面は5秒ごとに履歴を取得します。スマートフォンのロック画面通知には対応していません。
 
@@ -187,6 +191,8 @@ npm run dev
 <a id="english"></a>
 
 ## English
+
+The tab uses a gradient icon. Background messages add an unread count and red dot, cleared when you return to the page.
 
 A local chat application built with Ollama, Express and Vue 3. Includes persona context, Markdown history, keyword memory recall, proactive messages, and Chinese, Japanese and English interfaces.
 
@@ -209,7 +215,7 @@ The default model is `qwen3.5:9b`. Install Ollama on the model computer and run 
 
 ### Two steps: import a memory theme, connect a model
 
-1. Put one memory theme in `Emotion/`. Distill it with exskill, another tool, or by hand, and place the Markdown text in the structure below.
+1. Put one memory theme in `Emotion/`. Distill it with [ex-skill](https://github.com/perkfly/ex-skill), another tool, or by hand, and place the Markdown text in the structure below.
 2. Copy `local.config.example.json` to `local.config.json`, set the address in `ai.config.js` and optionally `OLLAMA_MODEL`, and run the setup commands below.
 
 ```text
@@ -223,7 +229,7 @@ Emotion/
 archive/                 New chats saved automatically to chat.md
 ```
 
-Replace the templates; no code changes are needed. From an existing exskill, put memories.md in Emotion/ and SKILL.md and persona.md in the skill folder. Raw chat exports, images and PDFs must first be converted into distilled Markdown with another tool. Restart after changing the theme.
+Replace the templates; no code changes are needed. From an existing [ex-skill](https://github.com/perkfly/ex-skill), put memories.md in Emotion/ and SKILL.md and persona.md in the skill folder. Raw chat exports, images and PDFs must first be converted into distilled Markdown with another tool. Restart after changing the theme.
 
 Imported conversations are model context, not chat bubbles. The page displays live history from archive/chat.md. Imported memories and conversation excerpts are each limited to the first 24000 characters; summarize longer material first.
 
@@ -259,7 +265,7 @@ The persona directory can contain `meta.json`, `SKILL.md`, `persona.md`, `memori
 - Settings control the display name, interface language, random proactive delay and quiet hours. Interface language does not change conversation language.
 - Model status beside the settings title reports available, not installed or offline. Available means the service is reachable and the configured model is installed, not necessarily generating.
 - Timestamped messages are restored from Markdown. Dates use device local time in `01/Apr/2026,03:24` format.
-- Recall includes the latest 20 messages and up to 6 older keyword matches, capped at 8000 characters per message including quoted context. This is not semantic search.
+- Recall includes the latest 20 messages and up to 6 older keyword matches, capped at 8000 characters per message including quoted context. This is not semantic search. These limits apply only to chat history; persona context and designated memory files in Emotion/ are loaded separately. The app does not recursively search all source files.
 - Default proactive delay is 10–30 minutes, with quiet hours from 23:00 to 09:00 Japan time. A topic may be skipped; unanswered proactive messages repeat after a random delay from minimum × 2 + 2 to maximum minutes (clamped to the lower bound if inverted). Equal quiet-hour times disable quiet hours.
 - The page polls history every 5 seconds. Phone lock-screen notifications are not supported.
 
