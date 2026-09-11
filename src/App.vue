@@ -25,7 +25,7 @@
           <p>{{ message.content }}</p>
         </article>
 
-        <article v-if="loading" class="message assistant typing-message" role="status" :aria-label="t.typing">
+        <article v-if="loading && showTyping" class="message assistant typing-message" role="status" :aria-label="t.typing">
           <span class="role">{{ settings.name }}</span>
           <div class="typing-dots" aria-hidden="true"><span></span><span></span><span></span></div>
         </article>
@@ -98,6 +98,8 @@ async function jumpToMessage(index) {
 }
 const input = ref('');
 const loading = ref(false);
+const showTyping = ref(false);
+let typingTimer;
 const initializing = ref(true);
 const error = ref('');
 const messages = ref([]);
@@ -210,7 +212,7 @@ async function loadHistory(background = false) {
   await scrollToBottom();
 }
 let historyTimer;
-onUnmounted(() => clearInterval(historyTimer));
+onUnmounted(() => { clearInterval(historyTimer); clearTimeout(typingTimer); });
 onMounted(async () => {
   historyTimer = setInterval(() => {
     if (settingsOpen.value) refreshModelHealth();
@@ -231,6 +233,14 @@ async function sendMessage() {
   messages.value.push({ role: 'user', content, timestamp: new Date().toISOString() });
   input.value = '';
   loading.value = true;
+  showTyping.value = false;
+  clearTimeout(typingTimer);
+  typingTimer = setTimeout(() => {
+    if (loading.value) {
+      showTyping.value = true;
+      scrollToBottom();
+    }
+  }, 1000 + Math.floor(Math.random() * 9001));
   await scrollToBottom();
   try {
     const response = await fetch('/api/chat', {
@@ -241,6 +251,8 @@ async function sendMessage() {
     if (!response.ok) throw new Error(t.value.chatError);
   } catch (err) { error.value = t.value.chatError; }
   finally {
+    clearTimeout(typingTimer);
+    showTyping.value = false;
     try { await loadHistory(); } catch (err) { error.value = error.value || t.value.historyError; }
     loading.value = false;
     await scrollToBottom();
