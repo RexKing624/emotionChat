@@ -30,7 +30,8 @@ export const translations = {
     "missing": "未安装",
     "offline": "离线",
     "silent": "安静",
-    "silentHint": "不会主动找话题。"
+    "silentHint": "不会主动找话题。",
+    "silentActive": "安静中"
   },
   "ja": {
     "settings": "設定",
@@ -63,7 +64,8 @@ export const translations = {
     "missing": "未インストール",
     "offline": "オフライン",
     "silent": "静かに",
-    "silentHint": "こちらから話しかけません。"
+    "silentHint": "こちらから話しかけません。",
+    "silentActive": "おやすみ中"
   },
   "en": {
     "settings": "Settings",
@@ -96,6 +98,7 @@ export const translations = {
     "missing": "Not installed",
     "offline": "Offline",
     "silent": "Quiet",
-    "silentHint": "No proactive messages."
+    "silentHint": "No proactive messages.",
+    "silentActive": "Quiet mode"
   }
 };

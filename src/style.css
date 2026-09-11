@@ -245,5 +245,5 @@ button:disabled {
 
 .settings-form .proactive-heading { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .quiet-toggle { min-width: 58px; width: auto; height: 30px; padding: 0 12px; align-self: center; background: #edf1f4; color: #65717b; font-size: 12px; border: 1px solid #d7dfe5; }
-.quiet-toggle.active { background: #e7f0ff; color: #1f6feb; border-color: #1f6feb; }
+.quiet-toggle.active { background: #fff0f0; color: #c53030; border-color: #e59a9a; }
 .settings-form input:disabled { color: #9aa3ab; background: #edf0f2; border-color: #e0e5e9; cursor: not-allowed; }

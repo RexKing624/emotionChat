@@ -55,7 +55,7 @@
           </div>
         </fieldset>
         <p>{{ t.languageHint }}</p>
-        <fieldset><legend class="proactive-heading"><span>{{ t.proactive }}</span><button type="button" class="quiet-toggle" :class="{ active: !settings.proactiveEnabled }" :aria-pressed="!settings.proactiveEnabled" :disabled="saving" @click="toggleProactive">{{ t.silent }}</button></legend>
+        <fieldset><legend class="proactive-heading"><span>{{ t.proactive }}</span><button type="button" class="quiet-toggle" :class="{ active: !settings.proactiveEnabled }" :aria-pressed="!settings.proactiveEnabled" :disabled="saving" @click="toggleProactive">{{ settings.proactiveEnabled ? t.silent : t.silentActive }}</button></legend>
           <p>{{ settings.proactiveEnabled ? t.proactiveHint : t.silentHint }}</p>
           <div class="settings-row">
             <label>{{ t.min }}<input type="number" :disabled="!settings.proactiveEnabled" v-model.number="draft.minMinutes" min="1" max="1440" required /></label>
