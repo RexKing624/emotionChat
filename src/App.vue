@@ -3,7 +3,7 @@
     <section class="chat">
       <header class="topbar">
         <div>
-          <p class="eyebrow">EmotionChat</p>
+          <button class="eyebrow object-back" @click="$emit('back')">← EmotionChat</button>
           <h1><button class="chat-name" :aria-label="t.historyTitle" @click="historyPanel.open()">{{ settings.name }}</button></h1>
         </div>
         <button class="settings-toggle" type="button" :aria-label="t.settings" @click="openSettings">☰</button>
@@ -98,6 +98,7 @@
 </template>
 
 <script setup>
+import { apiFetch as fetch } from './api.js';
 import { computed, nextTick, onMounted, onUnmounted, ref, watchEffect } from 'vue';
 import { backdropStart, backdropClose } from './dialogBackdrop.js';
 import { createTabNotification } from './tabNotification.js';

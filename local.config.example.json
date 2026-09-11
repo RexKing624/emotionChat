@@ -1,5 +1,5 @@
 {
   "OLLAMA_MODEL": "qwen3.5:9b",
-  "EXSKILL_DIR": "./Emotion/skill/emotionchat",
-  "CHAT_ARCHIVE_PATH": "./archive/chat.md"
+  "MEMORIES_DIR": "./emotion",
+  "CHAT_RECORDS_DIR": "./chats"
 }

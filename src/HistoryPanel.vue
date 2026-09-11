@@ -32,6 +32,7 @@
   </dialog>
 </template>
 <script setup>
+import { apiFetch as fetch } from './api.js';
 import { computed, ref } from 'vue';
 import { backdropStart, backdropClose } from './dialogBackdrop.js';
 const props = defineProps({ messages: Array, name: String, t: Object, language: String, loading: Boolean });

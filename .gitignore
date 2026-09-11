@@ -20,5 +20,13 @@ archive/*
 persona/
 local.config.json
 
-Emotion/imports/*
-!Emotion/imports/.gitkeep
+# Local credentials, sessions, settings and backups
+auth.config.json
+runtime/
+chats/*
+!chats/.gitkeep
+# Only the public memory template is versioned
+emotion/*
+!emotion/Example/
+emotion/Example/imports/*
+!emotion/Example/imports/.gitkeep
