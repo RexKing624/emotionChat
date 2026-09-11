@@ -24,9 +24,9 @@
           <p>{{ message.content }}</p>
         </article>
 
-        <article v-if="loading" class="message assistant">
+        <article v-if="loading" class="message assistant typing-message" role="status" :aria-label="t.typing">
           <span class="role">{{ settings.name }}</span>
-          <p>{{ t.typing }}</p>
+          <div class="typing-dots" aria-hidden="true"><span></span><span></span><span></span></div>
         </article>
       </div>
 
