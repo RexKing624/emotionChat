@@ -28,7 +28,9 @@ export const translations = {
     "checking": "检查中",
     "ready": "可用",
     "missing": "未安装",
-    "offline": "离线"
+    "offline": "离线",
+    "silent": "安静",
+    "silentHint": "不会主动找话题。"
   },
   "ja": {
     "settings": "設定",
@@ -59,7 +61,9 @@ export const translations = {
     "checking": "確認中",
     "ready": "利用可能",
     "missing": "未インストール",
-    "offline": "オフライン"
+    "offline": "オフライン",
+    "silent": "静かに",
+    "silentHint": "こちらから話しかけません。"
   },
   "en": {
     "settings": "Settings",
@@ -90,6 +94,8 @@ export const translations = {
     "checking": "Checking",
     "ready": "Available",
     "missing": "Not installed",
-    "offline": "Offline"
+    "offline": "Offline",
+    "silent": "Quiet",
+    "silentHint": "No proactive messages."
   }
 };

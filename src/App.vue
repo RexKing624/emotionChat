@@ -55,11 +55,11 @@
           </div>
         </fieldset>
         <p>{{ t.languageHint }}</p>
-        <fieldset><legend>{{ t.proactive }}</legend>
-          <p>{{ t.proactiveHint }}</p>
+        <fieldset><legend class="proactive-heading"><span>{{ t.proactive }}</span><button type="button" class="quiet-toggle" :class="{ active: !settings.proactiveEnabled }" :aria-pressed="!settings.proactiveEnabled" :disabled="saving" @click="toggleProactive">{{ t.silent }}</button></legend>
+          <p>{{ settings.proactiveEnabled ? t.proactiveHint : t.silentHint }}</p>
           <div class="settings-row">
-            <label>{{ t.min }}<input type="number" v-model.number="draft.minMinutes" min="1" max="1440" required /></label>
-            <label>{{ t.max }}<input type="number" v-model.number="draft.maxMinutes" min="1" max="1440" required /></label>
+            <label>{{ t.min }}<input type="number" :disabled="!settings.proactiveEnabled" v-model.number="draft.minMinutes" min="1" max="1440" required /></label>
+            <label>{{ t.max }}<input type="number" :disabled="!settings.proactiveEnabled" v-model.number="draft.maxMinutes" min="1" max="1440" required /></label>
           </div>
         </fieldset>
         <fieldset><legend>{{ t.quiet }}</legend>
@@ -88,7 +88,7 @@ const loading = ref(false);
 const initializing = ref(true);
 const error = ref('');
 const messages = ref([]);
-const settings = ref({ language: 'zh', name: 'Assistant', minMinutes: 10, maxMinutes: 30, quietStart: '23:00', quietEnd: '09:00' });
+const settings = ref({ proactiveEnabled: true, language: 'zh', name: 'Assistant', minMinutes: 10, maxMinutes: 30, quietStart: '23:00', quietEnd: '09:00' });
 const draft = ref({ ...settings.value });
 const settingsDialog = ref(null);
 const settingsOpen = ref(false);
@@ -137,6 +137,25 @@ async function applyLanguage(value) {
   } catch {
     settings.value = { ...settings.value, language: previous };
     draft.value.language = previous;
+    settingsError.value = t.value.saveError;
+  } finally { saving.value = false; }
+}
+async function toggleProactive() {
+  if (saving.value) return;
+  const previous = settings.value.proactiveEnabled;
+  const enabled = !previous;
+  saving.value = true;
+  settingsError.value = '';
+  settings.value = { ...settings.value, proactiveEnabled: enabled };
+  draft.value.proactiveEnabled = enabled;
+  try {
+    const response = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settings.value) });
+    const data = await response.json();
+    if (!response.ok) throw new Error('Save failed');
+    settings.value = data;
+  } catch {
+    settings.value = { ...settings.value, proactiveEnabled: previous };
+    draft.value.proactiveEnabled = previous;
     settingsError.value = t.value.saveError;
   } finally { saving.value = false; }
 }

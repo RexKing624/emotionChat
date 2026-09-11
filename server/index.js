@@ -211,6 +211,7 @@ async function checkProactive() {
   try { previous = JSON.parse(await fs.readFile(schedulePath, 'utf8')); }
   catch (error) { if (error.code !== 'ENOENT') throw error; }
   const settings = await readSettings(settingsPath);
+  if (!settings.proactiveEnabled) return;
   const state = nextSchedule(previous, user, Date.now(), Math.random, settings);
   if (!state) return;
   if (state !== previous) await saveSchedule(state);
@@ -236,7 +237,7 @@ async function checkProactive() {
   if (!response.ok) throw new Error(data.error || `Ollama ${response.status}`);
   const content = data.message?.content?.trim();
   if (!content) throw new Error('Empty proactive response');
-  if (userRevision !== revision || quietHours(new Date(), await readSettings(settingsPath))) return;
+  if (!(await readSettings(settingsPath)).proactiveEnabled || userRevision !== revision || quietHours(new Date(), await readSettings(settingsPath))) return;
   if (content !== 'SKIP') {
     await appendMessage({ role: 'assistant', content, timestamp: new Date().toISOString() });
   }
