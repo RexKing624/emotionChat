@@ -6,22 +6,36 @@
 
 一个基于 Vue 3、Express 和 Ollama 的本地 AI 聊天应用。导入人物设定与回忆，连接自己的模型，即可聊天。使用本机模型时，资料无需发送给云端模型。
 
-### 快速开始
+### 连接 AI 模型
 
-需要 Node.js 22+。安装并启动 Ollama，下载模型：
+准备 Node.js 22+ 和一个已启动、已安装模型的 Ollama 服务。
 
-```sh
-ollama pull qwen3.5:9b
-```
+1. 在 `ai.config.js` 中填写 **Ollama 服务地址**，例如：
 
-在项目目录启动：
+   ```js
+   export default 'http://127.0.0.1:11434';
+   ```
+
+   模型与后端在同一台电脑时使用这个地址；在另一台电脑时，换成那台电脑的局域网 IP。不要加 `/api/chat`。
+
+2. 确认 **模型名称**。默认使用 `qwen3.5:9b`；如果你安装的是其他模型，在 `local.config.json` 中设置：
+
+   ```json
+   { "OLLAMA_MODEL": "你的已安装模型名称" }
+   ```
+
+   文件不存在时可先创建它；首次启动也会自动生成默认配置。已有文件只修改对应字段，保留其他设置。地址和模型名称必须与你的 Ollama 服务一致，修改后重启后端。
+
+### 启动
+
+在项目目录执行：
 
 ```sh
 npm install
 npm run dev
 ```
 
-打开 `http://127.0.0.1:5174/`，设置六位密码，新建聊天并选择 **Mika_Demo** 即可体验。**模型在本机运行时，无需修改配置。**
+打开 `http://127.0.0.1:5174/`，设置六位密码，再选择回忆并新建聊天。
 
 ### 解锁、回忆与聊天
 
@@ -92,22 +106,36 @@ runtime/
 
 Vue 3、Express、Ollama を使うローカルAIチャットです。人物設定と記憶を読み込み、自分のモデルに接続します。端末内のモデルなら、資料をクラウドAIへ送る必要はありません。
 
-### クイックスタート
+### AI モデルに接続
 
-Node.js 22+ が必要です。Ollama をインストールして起動し、モデルをダウンロードします。
+Node.js 22+ と、モデルをインストールして起動済みの Ollama を用意します。
 
-```sh
-ollama pull qwen3.5:9b
-```
+1. `ai.config.js` に **Ollama の接続先**を設定します。
 
-プロジェクトのフォルダーで起動します。
+   ```js
+   export default 'http://127.0.0.1:11434';
+   ```
+
+   バックエンドと同じパソコンならこのアドレスを使い、別のパソコンならそのLAN IPに変更します。`/api/chat` は付けません。
+
+2. **モデル名**を確認します。既定は `qwen3.5:9b` です。別のモデルを使う場合、`local.config.json` に設定します。
+
+   ```json
+   { "OLLAMA_MODEL": "インストール済みのモデル名" }
+   ```
+
+   ファイルは手動作成でき、初回起動でも既定設定が自動生成されます。既存ファイルは該当項目だけ変更してください。接続先とモデル名を実際の Ollama に合わせ、変更後は再起動します。
+
+### 起動
+
+プロジェクトのフォルダーで実行します。
 
 ```sh
 npm install
 npm run dev
 ```
 
-`http://127.0.0.1:5174/` を開き、6桁のパスコードを設定。新しいチャットで **Mika_Demo** を選べば試せます。**モデルを同じパソコンで動かす場合、設定変更は不要です。**
+`http://127.0.0.1:5174/` を開き、6桁のパスコードを設定して、記憶を選び新しいチャットを作成します。
 
 ### 記憶とチャット
 
@@ -158,22 +186,36 @@ npm run dev
 
 A local AI chat app built with Vue 3, Express and Ollama. Import personas and memories and connect your own model. With an on-device model, private material need not be sent to a cloud AI service.
 
-### Quick start
+### Connect an AI model
 
-Requires Node.js 22+. Install and start Ollama, then download the model:
+Prepare Node.js 22+ and a running Ollama service with a model already installed.
 
-```sh
-ollama pull qwen3.5:9b
-```
+1. Set the **Ollama service address** in `ai.config.js`:
 
-Start the app from the project folder:
+   ```js
+   export default 'http://127.0.0.1:11434';
+   ```
+
+   Use this address when Ollama and the backend run on the same computer. For another computer, use its LAN IP instead. Do not append `/api/chat`.
+
+2. Check the **model name**. The default is `qwen3.5:9b`. For another installed model, set this field in `local.config.json`:
+
+   ```json
+   { "OLLAMA_MODEL": "your-installed-model-name" }
+   ```
+
+   You can create this file yourself; first launch also creates defaults if it is missing. When editing an existing file, preserve other fields. Both the address and model name must match your Ollama service. Restart the backend after changes.
+
+### Start the app
+
+Run in the project folder:
 
 ```sh
 npm install
 npm run dev
 ```
 
-Open `http://127.0.0.1:5174/`, set your six-digit passcode, and create a chat using **Mika_Demo**. **No configuration changes are needed when the model runs on the same computer.**
+Open `http://127.0.0.1:5174/`, set your six-digit passcode, then select a memory model and create a chat.
 
 ### Unlock, memories and chats
 
