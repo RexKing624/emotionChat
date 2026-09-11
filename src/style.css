@@ -275,3 +275,7 @@ button:disabled {
 .history-cleanup button { width: auto; min-width: 0; height: auto; padding: 9px 12px; background: #edf2f5; color: #56616a; font-size: 12px; }
 .history-cleanup .clear-history { color: #bb3939; background: #fff0f0; }
 .history-cleanup button:disabled { opacity: .45; }
+
+.history-result-row { display: flex; align-items: flex-start; gap: 10px; border-bottom: 1px solid #edf0f2; }
+.history-result-row .history-result { flex: 1; min-width: 0; border-bottom: 0; }
+.history-result-row .delete-message { flex-shrink: 0; min-width: 0; width: auto; height: 28px; padding: 0 8px; margin-top: 10px; align-self: flex-start; background: #fff0f0; color: #bb3939; font-size: 11px; }

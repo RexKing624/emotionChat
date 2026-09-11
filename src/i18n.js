@@ -43,8 +43,9 @@ export const translations = {
     "clearHistory": "清空全部聊天记录",
     "clearConfirm": "清空全部日期的聊天记录？将保留本地备份，可恢复。人物设定和导入回忆不受影响。",
     "confirmClear": "确认清空",
-    "restoreHistory": "恢复上次清理",
-    "historyActionError": "操作失败，请重试。"
+    "restoreHistory": "恢复上次删除 / 清理",
+    "historyActionError": "操作失败，请重试。",
+    "deleteMessage": "删除"
   },
   "ja": {
     "settings": "設定",
@@ -90,8 +91,9 @@ export const translations = {
     "clearHistory": "履歴をすべて消去",
     "clearConfirm": "すべての日付の履歴を消去しますか？ローカルのバックアップから復元できます。人物設定や取り込んだ記憶は変わりません。",
     "confirmClear": "消去する",
-    "restoreHistory": "前回の消去を復元",
-    "historyActionError": "操作に失敗しました。再試行してください。"
+    "restoreHistory": "前回の削除を復元",
+    "historyActionError": "操作に失敗しました。再試行してください。",
+    "deleteMessage": "削除"
   },
   "en": {
     "settings": "Settings",
@@ -137,7 +139,8 @@ export const translations = {
     "clearHistory": "Clear all chat history",
     "clearConfirm": "Clear history for all dates? A local backup will remain for restoration. Persona and imported memories are unchanged.",
     "confirmClear": "Confirm clear",
-    "restoreHistory": "Restore last cleared history",
-    "historyActionError": "Operation failed. Please try again."
+    "restoreHistory": "Restore last deletion / clearing",
+    "historyActionError": "Operation failed. Please try again.",
+    "deleteMessage": "Delete"
   }
 };

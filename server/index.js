@@ -179,6 +179,10 @@ for (const action of ['clear', 'restore']) {
           const temporary = `${archivePath}.restore.tmp`;
           await fs.writeFile(temporary, backup + '\n' + (firstEntry < 0 ? '' : current.slice(firstEntry)));
           await fs.rename(temporary, archivePath);
+          const restored = (await readArchive()).messages.sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
+          const ordered = '# EmotionChat Archive\n\n' + restored.map(m => `## ${m.timestamp}\n\n### ${m.role === 'user' ? 'User' : 'Assistant'}\n\n${m.content.split('\n').map(line => `> ${line}`).join('\n')}\n\n---\n`).join('\n');
+          await fs.writeFile(temporary, ordered);
+          await fs.rename(temporary, archivePath);
           await fs.rename(path.join(backupDir, name), path.join(backupDir, `${name}.restored`));
         }
         res.json({ available: Boolean(await latestBackup()) });
@@ -187,6 +191,28 @@ for (const action of ['clear', 'restore']) {
     chatQueue = chatQueue.then(task, task);
   });
 }
+
+app.post('/api/history/delete-message', (req, res) => {
+  const { index, timestamp, role, content } = req.body || {};
+  if (!Number.isInteger(index) || index < 0) return res.status(400).json({ error: 'Invalid message' });
+  userRevision += 1;
+  const task = async () => {
+    try {
+      const history = await readArchive();
+      const message = history.messages[index];
+      if (!message || message.timestamp !== timestamp || message.role !== role || message.content !== content) return res.status(409).json({ error: 'History changed; refresh and try again' });
+      const serialize = messages => '# EmotionChat Archive\n\n' + messages.map(m => `## ${m.timestamp}\n\n### ${m.role === 'user' ? 'User' : 'Assistant'}\n\n${m.content.split('\n').map(line => `> ${line}`).join('\n')}\n\n---\n`).join('\n');
+      await fs.mkdir(backupDir, { recursive: true });
+      // A single-message backup restores only that message, never duplicates the rest.
+      await fs.writeFile(path.join(backupDir, `${Date.now()}-${crypto.randomUUID()}.md`), serialize([message]), { flag: 'wx' });
+      const temporary = `${archivePath}.delete.tmp`;
+      await fs.writeFile(temporary, serialize(history.messages.filter((_, i) => i !== index)));
+      await fs.rename(temporary, archivePath);
+      res.json({ available: true });
+    } catch { res.status(500).json({ error: 'Delete failed' }); }
+  };
+  chatQueue = chatQueue.then(task, task);
+});
 
 app.get('/api/health', async (_req, res) => {
   res.set('Cache-Control', 'no-store');

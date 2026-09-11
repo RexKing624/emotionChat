@@ -11,7 +11,10 @@
     <input class="history-search" type="search" v-model="query" :placeholder="t.searchHistory" :aria-label="t.searchHistory" />
     <p class="history-count">{{ t.resultCount.replace('{count}', filtered.length) }}</p>
     <div class="history-results">
-      <button class="history-result" v-for="message in filtered" :key="message.index" @click="jump(message.index)"><span><strong>{{ message.role === 'user' ? t.you : name }}</strong><time>{{ new Date(message.timestamp).toLocaleString(locale) }}</time></span><p>{{ message.content }}</p></button>
+      <div class="history-result-row" v-for="message in filtered" :key="message.index">
+        <button class="history-result" @click="jump(message.index)"><span><strong>{{ message.role === 'user' ? t.you : name }}</strong><time>{{ new Date(message.timestamp).toLocaleString(locale) }}</time></span><p>{{ message.content }}</p></button>
+        <button class="delete-message" :disabled="busy || loading" @click="deleteMessage(message)">{{ t.deleteMessage }}</button>
+      </div>
       <p v-if="!filtered.length">{{ t.noResults }}</p>
     </div>
     <p v-if="error" role="alert" class="settings-error">{{ error }}</p>
@@ -53,6 +56,14 @@ async function mutate(action){
  busy.value=true;error.value='';
  try{const r=await fetch(`/api/history/${action}`,{method:'POST'});if(!r.ok)throw Error();canRestore.value=(await r.json()).available;confirmClear.value=false;emit('changed');}
  catch{error.value=props.t.historyActionError;}finally{busy.value=false;}
+}
+async function deleteMessage(message) {
+ busy.value=true;error.value='';
+ try {
+  const r=await fetch('/api/history/delete-message',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(message)});
+  if(!r.ok)throw Error();
+  canRestore.value=true;emit('changed');
+ }catch{error.value=props.t.historyActionError;emit('changed');}finally{busy.value=false;}
 }
 const clearHistory=()=>mutate('clear'),restoreHistory=()=>mutate('restore');
 defineExpose({open});
