@@ -149,6 +149,45 @@ function normalizeMessages(messages, prompt) {
   return prompt ? [{ role: 'user', content: prompt }] : [];
 }
 
+const backupDir = `${archivePath}.backups`;
+async function latestBackup() {
+  try { return (await fs.readdir(backupDir)).filter(name => /^\d+-[a-f0-9-]+\.md$/.test(name)).sort().at(-1); }
+  catch (error) { if (error.code === 'ENOENT') return null; throw error; }
+}
+app.get('/api/history/backup', async (_req, res) => {
+  try { res.set('Cache-Control', 'no-store').json({ available: Boolean(await latestBackup()) }); }
+  catch { res.status(500).json({ error: 'Backup unavailable' }); }
+});
+for (const action of ['clear', 'restore']) {
+  app.post(`/api/history/${action}`, (_req, res) => {
+    userRevision += 1;
+    const task = async () => {
+      try {
+        if (action === 'clear') {
+          const raw = await fs.readFile(archivePath, 'utf8');
+          await fs.mkdir(backupDir, { recursive: true });
+          await fs.writeFile(path.join(backupDir, `${Date.now()}-${crypto.randomUUID()}.md`), raw, { flag: 'wx' });
+          const temporary = `${archivePath}.clear.tmp`;
+          await fs.writeFile(temporary, '# EmotionChat Archive\n\n');
+          await fs.rename(temporary, archivePath);
+        } else {
+          const name = await latestBackup();
+          if (!name) return res.status(404).json({ error: 'No backup' });
+          const backup = await fs.readFile(path.join(backupDir, name), 'utf8');
+          const current = await readOptional(archivePath);
+          const firstEntry = current.search(/^## /m);
+          const temporary = `${archivePath}.restore.tmp`;
+          await fs.writeFile(temporary, backup + '\n' + (firstEntry < 0 ? '' : current.slice(firstEntry)));
+          await fs.rename(temporary, archivePath);
+          await fs.rename(path.join(backupDir, name), path.join(backupDir, `${name}.restored`));
+        }
+        res.json({ available: Boolean(await latestBackup()) });
+      } catch { res.status(500).json({ error: 'History operation failed' }); }
+    };
+    chatQueue = chatQueue.then(task, task);
+  });
+}
+
 app.get('/api/health', async (_req, res) => {
   res.set('Cache-Control', 'no-store');
   try {

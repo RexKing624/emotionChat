@@ -4,7 +4,7 @@
       <header class="topbar">
         <div>
           <p class="eyebrow">EmotionChat</p>
-          <h1>{{ settings.name }}</h1>
+          <h1><button class="chat-name" :aria-label="t.historyTitle" @click="historyPanel.open()">{{ settings.name }}</button></h1>
         </div>
         <button class="settings-toggle" type="button" :aria-label="t.settings" @click="openSettings">☰</button>
       </header>
@@ -14,6 +14,7 @@
         <article
           v-for="(message, index) in messages"
           :key="index"
+          :data-message-index="index"
           class="message"
           :class="message.role"
         >
@@ -45,6 +46,7 @@
         </button>
       </form>
     </section>
+    <HistoryPanel ref="historyPanel" :messages="messages" :name="settings.name" :t="t" :language="language" :loading="loading" @changed="loadHistory()" @jump="jumpToMessage" />
     <dialog ref="settingsDialog" class="settings-dialog" @close="settingsOpen = false">
       <form @submit.prevent="saveSettings" class="settings-form">
         <div class="settings-title"><h2>{{ t.settings }}</h2><span class="model-status" :class="modelHealth.status" role="status">{{ modelHealth.model }} · {{ t[modelHealth.status] }}</span></div>
@@ -81,8 +83,16 @@
 
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref, watchEffect } from 'vue';
+import HistoryPanel from './HistoryPanel.vue';
 import { translations } from './i18n.js';
 
+const historyPanel = ref(null);
+async function jumpToMessage(index) {
+  await nextTick();
+  const element = messageList.value?.querySelector(`[data-message-index="${index}"]`);
+  element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  element?.animate([{ outline: '2px solid #1f6feb' }, { outline: '2px solid transparent' }], { duration: 1800 });
+}
 const input = ref('');
 const loading = ref(false);
 const initializing = ref(true);

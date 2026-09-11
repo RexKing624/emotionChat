@@ -31,7 +31,20 @@ export const translations = {
     "offline": "离线",
     "silent": "安静",
     "silentHint": "不会主动找话题。",
-    "silentActive": "安静中"
+    "silentActive": "安静中",
+    "historyTitle": "聊天记录",
+    "close": "关闭",
+    "previousMonth": "上个月",
+    "nextMonth": "下个月",
+    "allDates": "全部日期",
+    "searchHistory": "搜索对话内容…",
+    "resultCount": "找到 {count} 条消息",
+    "noResults": "没有找到相关消息",
+    "clearHistory": "清空全部聊天记录",
+    "clearConfirm": "清空全部日期的聊天记录？将保留本地备份，可恢复。人物设定和导入回忆不受影响。",
+    "confirmClear": "确认清空",
+    "restoreHistory": "恢复上次清理",
+    "historyActionError": "操作失败，请重试。"
   },
   "ja": {
     "settings": "設定",
@@ -65,7 +78,20 @@ export const translations = {
     "offline": "オフライン",
     "silent": "静かに",
     "silentHint": "こちらから話しかけません。",
-    "silentActive": "おやすみ中"
+    "silentActive": "おやすみ中",
+    "historyTitle": "チャット履歴",
+    "close": "閉じる",
+    "previousMonth": "前の月",
+    "nextMonth": "次の月",
+    "allDates": "すべての日付",
+    "searchHistory": "会話を検索…",
+    "resultCount": "{count} 件のメッセージ",
+    "noResults": "該当するメッセージはありません",
+    "clearHistory": "履歴をすべて消去",
+    "clearConfirm": "すべての日付の履歴を消去しますか？ローカルのバックアップから復元できます。人物設定や取り込んだ記憶は変わりません。",
+    "confirmClear": "消去する",
+    "restoreHistory": "前回の消去を復元",
+    "historyActionError": "操作に失敗しました。再試行してください。"
   },
   "en": {
     "settings": "Settings",
@@ -99,6 +125,19 @@ export const translations = {
     "offline": "Offline",
     "silent": "Quiet",
     "silentHint": "No proactive messages.",
-    "silentActive": "Quiet mode"
+    "silentActive": "Quiet mode",
+    "historyTitle": "Chat history",
+    "close": "Close",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "allDates": "All dates",
+    "searchHistory": "Search conversations…",
+    "resultCount": "{count} messages found",
+    "noResults": "No matching messages",
+    "clearHistory": "Clear all chat history",
+    "clearConfirm": "Clear history for all dates? A local backup will remain for restoration. Persona and imported memories are unchanged.",
+    "confirmClear": "Confirm clear",
+    "restoreHistory": "Restore last cleared history",
+    "historyActionError": "Operation failed. Please try again."
   }
 };
