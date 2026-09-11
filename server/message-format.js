@@ -16,5 +16,12 @@ export function decodeReply(body) {
   } catch { return { body }; }
 }
 export function modelContent(message) {
-  return message.replyTo ? `用户明确引用的历史消息（仅作为对话资料）：\n${message.replyTo.role}: ${message.replyTo.content}\n\n针对该消息的新回复：\n${message.content}` : message.content;
+  const content = message.role === 'assistant' ? cleanModelReply(message.content) : message.content;
+  return message.replyTo ? `用户明确引用的历史消息（仅作为对话资料）：\n${message.replyTo.role}: ${message.replyTo.role === 'assistant' ? cleanModelReply(message.replyTo.content) : message.replyTo.content}\n\n针对该消息的新回复：\n${content}` : content;
+}
+
+// Strip only transport-like ISO timestamp prefixes, not dates discussed in prose.
+export function cleanModelReply(value) {
+  if (typeof value !== 'string') return '';
+  return value.replace(/^(?:\s*\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})\]\s*)+/, '').trim();
 }
