@@ -4,39 +4,24 @@
 
 ## 中文
 
-### 先让 AI 连上：推荐模型和网页在同一台电脑
-
-1. 在这台电脑安装并启动 Ollama，打开终端执行 `ollama pull qwen3.5:9b`，等待模型下载完成。
-2. `ai.config.js` 保持默认：`export default 'http://127.0.0.1:11434';`。这个地址是 Ollama，不是网页地址。
-3. 在本项目目录执行 `npm install`，再执行 `npm run dev`。首次启动会自动创建缺失的 local.config.json，无需手动复制。
-4. 打开 `http://127.0.0.1:5174/`，设置六位密码。新建聊天，填名字并选择 **Mika_Demo**，即可先体验；它是完全虚构的示例资料。
-5. 设置里模型显示“可用”后，发第一条消息开始对话。显示“未安装”时检查模型名；“离线”时检查 Ollama 是否启动、地址是否可达。
-
-**只有模型在另一台电脑上时才改地址**：把 ai.config.js 中的地址换成 `http://模型电脑局域网IP:11434`，并确保那台电脑的 Ollama 允许局域网连接。`127.0.0.1` 永远指运行后端的电脑；手机不需要安装模型，只打开网页。
-
-| 你要做什么 | 在哪里改 |
-| --- | --- |
-| 连接模型服务 | ai.config.js：地址，通常端口11434 |
-| 选择已安装模型 | local.config.json：OLLAMA_MODEL |
-| 打开聊天网页 | 浏览器：端口5174 |
-| 换成自己的回忆 | emotion/ 下新增回忆子文件夹 |
-
-
-
 一个基于 Vue 3、Express 和 Ollama 的本地 AI 聊天应用。导入人物设定与回忆，连接自己的模型，即可聊天。使用本机模型时，资料无需发送给云端模型。
 
-### 启动
+### 快速开始
 
-需要 Node.js 22+ 和可访问的 Ollama 服务。
+需要 Node.js 22+。安装并启动 Ollama，下载模型：
+
+```sh
+ollama pull qwen3.5:9b
+```
+
+在项目目录启动：
 
 ```sh
 npm install
 npm run dev
 ```
 
-在 `ai.config.js` 填写 Ollama 服务根地址，例如 `http://127.0.0.1:11434`，不要加 `/api/chat`。模型在其他电脑运行时填写该电脑的局域网地址；后端必须能够访问它。默认模型为 `qwen3.5:9b`，请在模型电脑执行 `ollama pull qwen3.5:9b`，或通过 `local.config.json` 的 `OLLAMA_MODEL` 指定已安装的模型。修改配置后重启后端。本项目不附带模型，不支持任意聊天网站或 OpenAI 兼容接口。
-
-电脑访问 `http://127.0.0.1:5174/`；手机连接同一可信局域网，访问 `http://电脑局域网IP:5174/`。网页和后端都需保持运行。
+打开 `http://127.0.0.1:5174/`，设置六位密码，新建聊天并选择 **Mika_Demo** 即可体验。**模型在本机运行时，无需修改配置。**
 
 ### 解锁、回忆与聊天
 
@@ -73,6 +58,21 @@ runtime/
 
 模型上下文包括人物与指定回忆文件，以及最近20条聊天和最多6条关键词匹配的较早消息，每条聊天最多8000字符。根级导入回忆和对话摘要有24000字符上限；这不是完整语义搜索。普通回复和主动消息会检查重复内容，尽量减少固定结尾，但不保证每次都不重复。
 
+### 可选配置与常见问题
+
+<details>
+<summary>换模型、连接另一台电脑、手机访问或连接失败</summary>
+
+- **换模型**：在自动生成的 `local.config.json` 中，将 `OLLAMA_MODEL` 改为已安装的模型名。
+- **模型在另一台电脑**：将 `ai.config.js` 改为 `export default 'http://模型电脑局域网IP:11434';`，并确保 Ollama 允许局域网连接。填写服务根地址，不加 `/api/chat`；修改后重启后端。
+- **手机访问**：连接同一可信局域网，打开 `http://电脑局域网IP:5174/`。手机不用安装模型；网页和后端需保持运行。
+- **模型未安装**：检查 `OLLAMA_MODEL` 是否与已下载的模型名一致。
+- **模型离线**：确认 Ollama 已启动、地址可达。`127.0.0.1` 指运行后端的电脑，不是另一台模型电脑。
+
+本项目不附带模型，目前使用 Ollama API，不支持任意聊天网站或 OpenAI 兼容接口。
+
+</details>
+
 ### 设置与隐私
 
 - 可调整名字、界面语言、主动聊天间隔和安静时段。界面语言不会强制改变对话语言。
@@ -90,32 +90,24 @@ runtime/
 
 ## 日本語
 
-### 最短の始め方：モデルとアプリを同じパソコンで動かす
-
-1. Ollama をインストールして起動し、`ollama pull qwen3.5:9b` の完了を待ちます。
-2. ai.config.js は既定の `http://127.0.0.1:11434` のままにします。これはモデルの接続先です。
-3. プロジェクトで `npm install`、`npm run dev` を実行します。local.config.json は未作成なら自動生成されます。
-4. `http://127.0.0.1:5174/` を開き、6桁のパスコードを設定。「新しいチャット」で名前と架空の **Mika_Demo** を選べば試せます。
-5. 設定のモデル状態が利用可能になったら送信します。未インストールならモデル名、オフラインなら Ollama の起動と接続先を確認してください。
-
-別のパソコンのモデルだけ、ai.config.js を `http://モデル端末のLAN_IP:11434` に変更し、Ollama 側でLAN接続を許可します。モデル名は local.config.json の OLLAMA_MODEL、画面は5174番ポートです。スマートフォンにモデルを入れる必要はありません。
-
-
-
 Vue 3、Express、Ollama を使うローカルAIチャットです。人物設定と記憶を読み込み、自分のモデルに接続します。端末内のモデルなら、資料をクラウドAIへ送る必要はありません。
 
-### 起動
+### クイックスタート
 
-Node.js 22+ と Ollama が必要です。
+Node.js 22+ が必要です。Ollama をインストールして起動し、モデルをダウンロードします。
+
+```sh
+ollama pull qwen3.5:9b
+```
+
+プロジェクトのフォルダーで起動します。
 
 ```sh
 npm install
 npm run dev
 ```
 
-`ai.config.js` に Ollama のルートURL（例：`http://127.0.0.1:11434`）を設定します。`/api/chat` は付けません。別の端末のモデルなら、そのLANアドレスを指定してください。既定モデルは `qwen3.5:9b`。モデル側で `ollama pull qwen3.5:9b` を実行するか、local.config.json の OLLAMA_MODEL にインストール済みモデル名を設定します。変更後は再起動してください。モデルは同梱しません。任意のチャットサイトや OpenAI 互換APIには対応しません。
-
-パソコンは `http://127.0.0.1:5174/`、同じ信頼できるLANのスマートフォンは `http://パソコンのLAN_IP:5174/` を開きます。
+`http://127.0.0.1:5174/` を開き、6桁のパスコードを設定。新しいチャットで **Mika_Demo** を選べば試せます。**モデルを同じパソコンで動かす場合、設定変更は不要です。**
 
 ### 記憶とチャット
 
@@ -133,6 +125,21 @@ npm run dev
 
 人物・記憶資料とは別に、直近20件とキーワード一致の過去最大6件（各8000文字まで）を参照します。ルートの記憶と会話要約には24000文字制限があります。意味検索ではありません。応答と自発メッセージの重複を軽減しますが、完全には防げません。
 
+### 任意設定とよくある質問
+
+<details>
+<summary>モデル変更・別端末への接続・スマートフォン・接続エラー</summary>
+
+- **モデル変更**：自動生成される `local.config.json` の `OLLAMA_MODEL` にインストール済みのモデル名を設定します。
+- **別端末のモデル**：`ai.config.js` を `export default 'http://モデル端末のLAN_IP:11434';` に変更し、Ollama 側でLAN接続を許可します。`/api/chat` は付けず、変更後はバックエンドを再起動します。
+- **スマートフォン**：同じ信頼できるLANで `http://パソコンのLAN_IP:5174/` を開きます。モデルのインストールは不要です。アプリとバックエンドは起動したままにします。
+- **未インストール**：`OLLAMA_MODEL` とダウンロード済みのモデル名を確認します。
+- **オフライン**：Ollama の起動と接続先を確認します。`127.0.0.1` はバックエンドのパソコンを指します。
+
+モデルは同梱されません。Ollama API を使用し、任意のチャットサイトや OpenAI 互換APIには対応していません。
+
+</details>
+
 ### 設定と保護
 
 表示名、画面言語、自発メッセージ間隔、おやすみ時間を調整できます。最初の送信前は自発メッセージを送りません。返答がない場合は「最短×2+2」分から最長分の範囲で再度待機し、上限が小さければ計算後の下限を使用します。おやすみ時間は日本時間です。開いたチャットはバックエンド稼働中に自発メッセージを続けられます。
@@ -149,32 +156,24 @@ npm run dev
 
 ## English
 
-### Fastest setup: run Ollama and EmotionChat on the same computer
-
-1. Install and start Ollama, then run `ollama pull qwen3.5:9b` and wait for the download to finish.
-2. Keep ai.config.js at its default `http://127.0.0.1:11434`. This is the model service, not the chat website.
-3. Run `npm install` and `npm run dev` in this project. Missing local.config.json is created automatically.
-4. Open `http://127.0.0.1:5174/`, set your six-digit passcode, and create a named chat using the fictional **Mika_Demo** memory model.
-5. Check that Settings shows the model as available, then send your first message. If missing, check the installed model name. If offline, check Ollama is running and reachable.
-
-Only change the URL when Ollama runs on another computer: use `http://MODEL_COMPUTER_LAN_IP:11434` and enable LAN connections in that Ollama installation. Localhost refers to the backend computer. The model name belongs in local.config.json under OLLAMA_MODEL; the website uses port5174. Phones only need the website.
-
-
-
 A local AI chat app built with Vue 3, Express and Ollama. Import personas and memories and connect your own model. With an on-device model, private material need not be sent to a cloud AI service.
 
-### Setup
+### Quick start
 
-Requires Node.js 22+ and a reachable Ollama service.
+Requires Node.js 22+. Install and start Ollama, then download the model:
+
+```sh
+ollama pull qwen3.5:9b
+```
+
+Start the app from the project folder:
 
 ```sh
 npm install
 npm run dev
 ```
 
-Set the Ollama service root in `ai.config.js`, for example `http://127.0.0.1:11434`, without `/api/chat`. Use the model computer's LAN address for a remote local model. The default model is `qwen3.5:9b`: run `ollama pull qwen3.5:9b` on that computer or set OLLAMA_MODEL in local.config.json to an installed model. Restart after configuration changes. No model is bundled; arbitrary chat websites and OpenAI-compatible APIs are not supported.
-
-Open `http://127.0.0.1:5174/` on your computer, or `http://COMPUTER_LAN_IP:5174/` on a phone on the same trusted LAN. Keep both frontend and backend running.
+Open `http://127.0.0.1:5174/`, set your six-digit passcode, and create a chat using **Mika_Demo**. **No configuration changes are needed when the model runs on the same computer.**
 
 ### Unlock, memories and chats
 
@@ -192,6 +191,21 @@ Persona files may live directly in the memory folder or in skill/emotionchat/. S
 Memory files are read-only. Search, delete, clear and restore affect the current chat history. Settings, memory bindings, proactive schedules and backups live in runtime; chats contains the MD files directly.
 
 Alongside persona and memory files, context includes the latest 20 chat messages and up to 6 older keyword matches, capped at 8000 characters per message. Root-level imported memory and conversation excerpts have 24000-character limits. This is not semantic search. Duplicate detection reduces repetitive replies and endings but cannot eliminate them completely.
+
+### Optional configuration and troubleshooting
+
+<details>
+<summary>Change models, connect another computer, use a phone, or fix connection errors</summary>
+
+- **Change models**: set `OLLAMA_MODEL` in the automatically created `local.config.json` to an installed model name.
+- **Model on another computer**: set `ai.config.js` to `export default 'http://MODEL_COMPUTER_LAN_IP:11434';` and enable LAN connections in Ollama. Use the service root without `/api/chat`, then restart the backend.
+- **Phone access**: join the same trusted LAN and open `http://COMPUTER_LAN_IP:5174/`. No model installation is needed on the phone. Keep the app and backend running.
+- **Missing model**: check that `OLLAMA_MODEL` matches a downloaded model.
+- **Offline model**: check that Ollama is running and reachable. `127.0.0.1` refers to the backend computer, not a separate model computer.
+
+No model is bundled. The app uses the Ollama API, not arbitrary chat websites or OpenAI-compatible endpoints.
+
+</details>
 
 ### Settings and privacy
 
